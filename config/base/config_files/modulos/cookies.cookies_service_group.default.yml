@@ -1,0 +1,11 @@
+uuid: b60e3a6d-fa77-4dba-95df-d0c338c7d492
+langcode: es
+status: true
+dependencies: {  }
+_core:
+  default_config_hash: MWjA0PCPcQbODMR7UjJxq4hK8JzyYy4zZeQmmQVjC3M
+id: default
+label: Default
+weight: 1
+title: '¿Qué son las Cookies?'
+details: "Las cookies son pequeños archivos de texto que su navegador coloca en su dispositivo para almacenar cierta información. Utilizando la información que se almacena y se devuelve, un sitio web puede reconocer que usted ha accedido y visitado previamente utilizando el navegador de su dispositivo final. \r\nUtilizamos esta información para organizar y mostrar el sitio web de manera óptima de acuerdo con sus preferencias.\r\nDentro de este proceso, solo la propia cookie se identifica en su dispositivo. Los datos personales solo se almacenan después de su consentimiento expreso o cuando esto es absolutamente necesario para permitir el uso del servicio proporcionado por nosotros y al que usted accede."

@@ -1,0 +1,18 @@
+_core:
+  default_config_hash: cde_6iitXVaYv36jo8pB77sJdpKNoaGhbAkBWj-CPZ4
+langcode: es
+cookie_name: cookiesjsr
+cookie_expires: 365
+cookie_domain: ''
+cookie_secure: false
+cookie_same_site: Lax
+open_settings_hash: editCookieSettings
+show_deny_all: true
+deny_all_on_layer_close: false
+settings_as_link: true
+group_consent: true
+cookie_docs: true
+lib_load_from_cdn: true
+lib_scroll_limit: 0
+use_default_styles: true
+store_auth_user_consent: true

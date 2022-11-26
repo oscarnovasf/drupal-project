@@ -1,0 +1,26 @@
+_core:
+  default_config_hash: r0JMDv27tTPrhzD4ypdLS0Jijl0-ccTUdlBkqvbAa8A
+langcode: es
+bannerText: 'Esta web utiliza cookies propias y de terceros con la finalidad de garantizar su funcionamiento, analizar la navegación y ofrecer publicidad de acuerdo a sus intereses, según sus hábitos de navegación. Puede aceptar todas las cookies pulsando “ACEPTAR TODO” o puede aceptar y rechazar tipos de cookies individuales y revocar su consentimiento en cualquier momento pulsando en "Configuración".'
+privacyPolicy: 'Política de privacidad'
+privacyUri: ''
+imprint: Imprimir
+imprintUri: ''
+cookieDocs: 'Política de Cookies'
+cookieDocsUri: /cookies/documentation
+denyAll: 'Denegar todo'
+alwaysActive: 'Activar siempre'
+settings: Configuración
+acceptAll: 'Aceptar todo'
+allowAll: 'Accept all'
+requiredCookies: 'Cookies necesarias'
+cookieSettings: 'Configuración de Cookies'
+close: Cerrar
+officialWebsite: 'Ver la web oficial'
+readMore: 'Leer más'
+allowed: permitidas
+denied: denegadas
+settingsAllServices: ''
+saveSettings: Guardar
+default_langcode: en
+credit: ''

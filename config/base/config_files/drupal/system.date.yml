@@ -1,0 +1,10 @@
+country:
+  default: ES
+first_day: 1
+timezone:
+  default: Europe/Madrid
+  user:
+    configurable: false
+    warn: false
+    default: 0
+langcode: es

@@ -1,0 +1,111 @@
+name: [PROYECTO]
+recipe: drupal9
+
+config:
+  webroot: web
+  # Define la versión de PHP (opcional => 7.4 por defecto).
+  php: 8.1
+  # Definimos versiones de composer y drush (opcional).
+  composer_version: 2-latest
+  drush: ^10
+  # Activamos XDebug => ponemos false si no lo queremos.
+  xdebug: debug
+  config:
+    php: utils/lando/php/php.ini
+
+services:
+  # Configuración del contenedor principal.
+  appserver:
+    overrides:
+      environment:
+        # Configuración para poder ejecutar PHPUnit.
+        SIMPLETEST_BASE_URL: "[PROYECTO].lndo.site"
+        SIMPLETEST_DB: "mysql://[DB_USER]:[DB_PASSWORD]@database.[PROYECTO].internal/[DB_DATABASE]"
+        BROWSERTEST_OUTPUT_DIRECTORY: "/app/phpunit-results"
+    build:
+      - ./utils/lando/scripts/prepare_lando.sh
+    build_as_root:
+      - ./utils/lando/scripts/prepare_lando_root.sh
+    run:
+      - ./scripts/shell/install.sh
+
+  # Configuración de la base de datos.
+  database:
+    type: mysql
+    portforward: 3307
+    creds:
+      user: [DB_USER]
+      password: [DB_PASSWORD]
+      database: [DB_DATABASE]
+    # Esta configuración se puede usar para generar nuevas bases de datos,
+    # nuevos usuarios..., es ideal para multi-site y evitar tener que crear
+    # varios contenedores con bases de datos.
+    # run:
+    #   - mysql -uroot < /app/utils/lando/db-setup.sql
+
+proxy:
+  appserver:
+    - [PROYECTO].lndo.site
+
+tooling:
+  # Ejecución de gulp
+  gulp:
+    service: appserver
+    description: Ejecución del watch de gulp en el custom theme.
+    cmd:
+      - cd /app/web/themes/custom/[THEME_MACHINE_NAME]/ && gulp
+
+  # Ejecución de npm
+  npm:
+    service: appserver
+    description: Ejecución del gestor de paquetes npm dentro del custom theme.
+    cmd:
+      - cd /app/web/themes/custom/[THEME_MACHINE_NAME]/ && npm
+
+  # lando db [ex|im]
+  db:
+    service: appserver
+    description: Importar o exportar base de datos.
+    cmd:
+      - ./scripts/shell/db.sh
+
+  # lando deploy
+  deploy:
+    service: appserver
+    description: Ejecutar deploy en entorno de desarrollo.
+    cmd:
+      - ./scripts/shell/deploy.sh
+    user: root
+
+  # lando dev [on|off]
+  dev:
+    service: appserver
+    description: Cambiar el tipo de entorno modificando los módulos y configuraciones.
+    cmd:
+      - ./scripts/shell/dev_mode.sh
+
+  # lando initialize
+  initialize:
+    service: appserver
+    description: Borra la instalación actual y restablece el proyecto a su estado inicial.
+    cmd:
+      - ./scripts/shell/initialize.sh
+
+  # lando phpcs
+  phpcs:
+    service: appserver
+    description: Ejecutar tareas de Code Sniffer.
+    cmd:
+      - ./scripts/shell/phpcs.sh
+
+  # lando trans [ex|im]
+  trans:
+    service: appserver
+    description: Importar o exportar traducciones.
+    cmd:
+      - ./scripts/shell/trans.sh
+
+  # Ejecución de PHPUnit
+  test:
+    service: appserver
+    cmd: "php /app/vendor/bin/phpunit --verbose --coverage-xml ./.tmp-doc -c ./phpunit.xml"

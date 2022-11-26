@@ -1,0 +1,34 @@
+#
+# A Drush configuration file
+#
+# Docs at https://github.com/drush-ops/drush/blob/master/examples/example.drush.yml
+#
+# Edit or remove this file as needed.
+command:
+  sql:
+    dump:
+      options:
+        structure-tables-key: common
+
+  site:
+    install:
+      options:
+        # Valores por defecto para instalar Drupal.
+        account-name: '${env.DRUPAL_USER_NAME}'
+        account-pass: '${env.DRUPAL_USER_PASS}'
+        account-mail: '${env.DRUPAL_USER_MAIL}'
+        locale: '${env.DRUPAL_LANGUAGE}'
+        db-url: 'mysql://${env.DRUPAL_DB_USER}:${env.DRUPAL_DB_PASSWORD}@${env.DRUPAL_DB_HOSTNAME}/${env.DRUPAL_DB_DATABASE}'
+        site-name: '${env.DRUPAL_SITENAME}'
+
+sql:
+  # Lista de tablas cuyos *datos* son ignorados por 'sql-dump' y 'sql-sync'
+  # cuando se pasa la opción "--structure-tables-key=common".
+  structure-tables:
+    common:
+      - cache
+      - 'cache_*'
+      - history
+      - 'search_*'
+      - 'sessions'
+      - 'watchdog'

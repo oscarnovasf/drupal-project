@@ -1,0 +1,49 @@
+parameters:
+  ascii: ~
+  additional_info: "\nRevisión del proyecto finalizada!\nRevisa los resultados anteriores.\n"
+
+  tasks:
+    composer_normalize:
+      indent_size: 4
+      indent_style: space
+      no_check_lock: true
+      no_update_lock: true
+      verbose: false
+
+    phpcs:
+      encoding: utf-8
+      whitelist_patterns:
+        - /^web\/modules\/custom\/(.*)/
+        - /^web\/themes\/custom\/(.*)/
+      ignore_patterns:
+        - .github
+        - .gitlab
+        - bower_components
+        - node_modules
+        - vendor
+      triggered_by:
+        - php
+        - inc
+        - module
+        - install
+        - profile
+        - theme
+      standard: vendor/drupal/coder/coder_sniffer/Drupal/,vendor/drupal/coder/coder_sniffer/DrupalPractice/
+
+    phpmd:
+      whitelist_patterns:
+        - /^web\/modules\/custom\/(.*)/
+        - /^web\/themes\/custom\/(.*)/
+      ignore_patterns:
+        - .github
+        - .gitlab
+        - bower_components
+        - node_modules
+        - vendor
+      triggered_by:
+        - php
+        - inc
+        - module
+        - install
+        - profile
+        - theme

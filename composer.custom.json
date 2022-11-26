@@ -1,0 +1,13 @@
+{
+    "name": "proyecto-drupal/[PROYECTO]",
+    "description": "[DESCRIPCION]",
+    "type": "project",
+    "license": "GPL-3.0-or-later",
+    "version": "1.0.0",
+
+    "require": {
+    },
+
+    "require-dev": {
+    }
+}

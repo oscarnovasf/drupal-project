@@ -1,0 +1,11 @@
+uuid: bbff6a5d-c02d-4b60-a7d9-9d48c0c92d81
+langcode: es
+status: true
+dependencies: {  }
+_core:
+  default_config_hash: _gYDe3qoEc6L5uYR6zhu5V-3ARLlyis9gl1diq7Tnf4
+id: tracking
+label: Tracking
+weight: 10
+title: Estadísticas
+details: 'Este tipo de cookies también conocidas como analíticas, nos permiten como responsables de este sitio web, medir la actividad, usos y accesos a los distintos contenidos y servicios disponibles con el fin de introducir mejoras o nuevos servicios.'

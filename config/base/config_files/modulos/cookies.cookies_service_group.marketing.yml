@@ -1,0 +1,11 @@
+uuid: 4de5fe53-0c42-44a5-8537-d4f31a20486d
+langcode: es
+status: true
+dependencies: {  }
+_core:
+  default_config_hash: JkP6try0AxX_f4RpFEletep5NHSlVB1BbGw0snW4MO8
+id: marketing
+label: Marketing
+weight: 20
+title: Marketing
+details: 'Estas cookies almacenan información sobre el comportamiento de las personas usuarias de este sitio web obtenida a través de la observación continuada de sus hábitos de navegación con el fin de desarrollar un perfil específico para ofrecer servicios e informaciones personalizadas en función del mismo.'

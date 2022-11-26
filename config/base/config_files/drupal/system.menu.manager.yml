@@ -1,0 +1,8 @@
+uuid: 327a0edc-6722-4596-9802-d60d9de5f87a
+langcode: es
+status: true
+dependencies: {  }
+id: manager
+label: Manager
+description: ''
+locked: false

@@ -1,0 +1,15 @@
+langcode: en
+status: false
+dependencies: {  }
+id: pro
+label: pro
+description: ''
+weight: 3
+stackable: false
+storage: folder
+folder: ../config/sync/pro
+module:
+  smtp: 0
+theme: {  }
+complete_list: {  }
+partial_list: {  }

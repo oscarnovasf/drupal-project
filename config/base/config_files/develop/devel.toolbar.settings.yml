@@ -1,0 +1,14 @@
+toolbar_items:
+  - devel.cache_clear
+  - devel.container_info.service
+  - devel.route_info.item
+  - devel_php.execute_php
+  - devel.run_cron
+  - devel.elements_page
+  - devel.entity_info_page
+  - devel.menu_rebuild
+  - devel.reinstall
+  - devel.route_info
+_core:
+  default_config_hash: IQjf_ytthngZTAk_MU8-74VecArWD3G5g0oEH6PM6GA
+langcode: es
