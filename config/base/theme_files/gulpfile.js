@@ -8,6 +8,7 @@ let gulp = require('gulp'),
   autoprefixer = require('autoprefixer'),
   postcssInlineSvg = require('postcss-inline-svg'),
   pxToRem = require('postcss-pxtorem'),
+  removeSourcemaps = require('gulp-remove-sourcemaps'),
   postcssProcessors = [
     postcssInlineSvg({
       removeFill: true,

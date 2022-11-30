@@ -11,8 +11,8 @@ DEV_COMPOSER=("${DEV_COMPOSER[@]}" 'drupal/coder: ^8.3')
 DEV_COMPOSER=("${DEV_COMPOSER[@]}" 'drupal/config_delete: ^1.17')
 DEV_COMPOSER=("${DEV_COMPOSER[@]}" 'drupal/delete_all: ^2.0')
 DEV_COMPOSER=("${DEV_COMPOSER[@]}" 'drupal/devel: ^5.0')
-DEV_COMPOSER=("${DEV_COMPOSER[@]}" 'drupal/devel_kint_extras: ^1.0')
-DEV_COMPOSER=("${DEV_COMPOSER[@]}" 'drupal/devel_php: ^1.3')
+DEV_COMPOSER=("${DEV_COMPOSER[@]}" 'drupal/devel_kint_extras: ^1.1')
+DEV_COMPOSER=("${DEV_COMPOSER[@]}" 'drupal/devel_php: ^1.5')
 DEV_COMPOSER=("${DEV_COMPOSER[@]}" 'drupal/drupal-extension: ^4.2')
 DEV_COMPOSER=("${DEV_COMPOSER[@]}" 'drupal/features: ^3.12')
 DEV_COMPOSER=("${DEV_COMPOSER[@]}" 'drupal/module_missing_message_fixer: ^2.0')
@@ -23,9 +23,10 @@ DEV_COMPOSER=("${DEV_COMPOSER[@]}" 'squizlabs/php_codesniffer: ^3.6')
 DEV_COMPOSER=("${DEV_COMPOSER[@]}" 'ergebnis/composer-normalize: ^2.18')
 DEV_COMPOSER=("${DEV_COMPOSER[@]}" 'phpmd/phpmd: @stable')
 DEV_COMPOSER=("${DEV_COMPOSER[@]}" 'phpunit/phpunit: ^9.5')
+DEV_COMPOSER=("${DEV_COMPOSER[@]}" 'phpspec/prophecy-phpunit: ^2')
 
 # Dependencias de desarrollo: Calidad del código.
-QUALITY_CHECKER='vijaycs85/drupal-quality-checker: ^1.0'
+QUALITY_CHECKER='vijaycs85/drupal-quality-checker: ^1.5'
 
 # Módulos de desarrollo
 declare -a DEV_DRUSH_NAMES
@@ -67,7 +68,6 @@ PROD_DRUSH_NAMES=("${PROD_DRUSH_NAMES[@]}" "block_exclude_pages")
 PROD_DRUSH_NAMES=("${PROD_DRUSH_NAMES[@]}" "body_roles_classes")
 PROD_DRUSH_NAMES=("${PROD_DRUSH_NAMES[@]}" "captcha")
 PROD_DRUSH_NAMES=("${PROD_DRUSH_NAMES[@]}" "ckeditor_accordion")
-PROD_DRUSH_NAMES=("${PROD_DRUSH_NAMES[@]}" "ckwordcount")
 PROD_DRUSH_NAMES=("${PROD_DRUSH_NAMES[@]}" "config_filter")
 PROD_DRUSH_NAMES=("${PROD_DRUSH_NAMES[@]}" "config_ignore")
 PROD_DRUSH_NAMES=("${PROD_DRUSH_NAMES[@]}" "config_pages")
@@ -118,8 +118,8 @@ PROD_DRUSH_NAMES=("${PROD_DRUSH_NAMES[@]}" "webp")
 # Themes de administración
 declare -a ADMIN_THEME
 ADMIN_THEME[0]='drupal/adminimal_theme: ^1.6'
-ADMIN_THEME[1]='drupal/mediteran: ^1.26'
-ADMIN_THEME[2]='drupal/root: ^1.7'
+ADMIN_THEME[1]='drupal/mediteran: ^1.29'
+ADMIN_THEME[2]='drupal/root: ^1.8'
 
 # Custom themes
 declare -a CUSTOM_THEME

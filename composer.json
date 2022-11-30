@@ -3,7 +3,7 @@
     "description": "Plantilla de instalación de Drupal 9.x",
     "type": "project",
     "license": "GPL-3.0-or-later",
-    "version": "1.1.0",
+    "version": "2.0.1",
 
     "repositories": [
         {
@@ -28,7 +28,7 @@
         "drupal/core-composer-scaffold": "^9.4",
         "drupal/core-recommended": "^9.4",
 
-        "drupal/admin_toolbar": "^3.0",
+        "drupal/admin_toolbar": "^3.3",
         "drupal/adminimal_admin_toolbar": "^1.11",
         "drupal/allowed_formats": "^2.0",
         "drupal/amswap": "^3.1",
@@ -39,7 +39,6 @@
         "drupal/body_roles_classes": "^1.2",
         "drupal/captcha": "^1.1",
         "drupal/ckeditor_accordion": "^2.0",
-        "drupal/ckwordcount": "^2.1",
         "drupal/config_filter": "^2.2",
         "drupal/config_ignore": "^3.0@beta",
         "drupal/config_pages": "^2.9",
@@ -106,9 +105,6 @@
         "process-timeout": 0,
         "discard-changes": true,
         "optimize-autoloader": true,
-        "platform": {
-            "php": "7.4"
-        },
         "secure-http": false,
         "sort-packages": true,
         "allow-plugins": {
@@ -202,7 +198,6 @@
             "include": [
                 "composer.custom.json",
                 "web/modules/custom/*/composer.json",
-                "web/modules/contrib/ckwordcount/composer.libraries.json",
                 "web/modules/contrib/webform/composer.libraries.json"
             ],
             "merge-dev": true,

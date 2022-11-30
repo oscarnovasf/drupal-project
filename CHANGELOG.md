@@ -6,6 +6,28 @@ Todos los cambios notables de este proyecto se documentarán en este archivo.
   > Ver [TODO.md](TODO.md)
 
 ---
+* ## [v2.0.1] - 2022-11-30
+  > Nuevas funcionalidades.
+
+  * #### Añadido:
+    - Dependencia de desarrollo "phpspec/prophecy-phpunit".
+
+  * #### Cambios:
+    - Mejora de la documentación.
+    - Actualización de versiones de los temas de administración.
+    - Actualización de versiones de los módulos de desarrollo.
+    - Actualización de versiones de los módulos de producción.
+
+  * #### Errores:
+    - Solución al error con GRUMP en PHP ^8.
+    - Error con gulp al crear la plantilla custom.
+    - Problemas de ejecución de gulp y npm en el directorio del theme.
+    - Aplicar parche para Redirect After Login en PHP 8.1.
+
+  * #### Eliminado:
+    - Se elimina CKWordCount por incompatibilidades.
+
+---
 * ## [v2.0.0] - 2022-11-26
   > Nuevas funcionalidades y refactor completo de los scripts.
 

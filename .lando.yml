@@ -16,12 +16,6 @@ config:
 services:
   # Configuración del contenedor principal.
   appserver:
-    overrides:
-      environment:
-        # Configuración para poder ejecutar PHPUnit.
-        SIMPLETEST_BASE_URL: "[PROYECTO].lndo.site"
-        SIMPLETEST_DB: "mysql://[DB_USER]:[DB_PASSWORD]@database.[PROYECTO].internal/[DB_DATABASE]"
-        BROWSERTEST_OUTPUT_DIRECTORY: "/app/phpunit-results"
     build:
       - ./utils/lando/scripts/prepare_lando.sh
     build_as_root:
@@ -48,19 +42,21 @@ proxy:
     - [PROYECTO].lndo.site
 
 tooling:
-  # Ejecución de gulp
+  # lando gulp
   gulp:
     service: appserver
     description: Ejecución del watch de gulp en el custom theme.
+    dir: /app/web/themes/custom/[THEME_MACHINE_NAME]/
     cmd:
-      - cd /app/web/themes/custom/[THEME_MACHINE_NAME]/ && gulp
+      - gulp
 
-  # Ejecución de npm
+  # lando npm
   npm:
     service: appserver
     description: Ejecución del gestor de paquetes npm dentro del custom theme.
+    dir: /app/web/themes/custom/[THEME_MACHINE_NAME]/
     cmd:
-      - cd /app/web/themes/custom/[THEME_MACHINE_NAME]/ && npm
+      - npm
 
   # lando db [ex|im]
   db:
@@ -104,8 +100,3 @@ tooling:
     description: Importar o exportar traducciones.
     cmd:
       - ./scripts/shell/trans.sh
-
-  # Ejecución de PHPUnit
-  test:
-    service: appserver
-    cmd: "php /app/vendor/bin/phpunit --verbose --coverage-xml ./.tmp-doc -c ./phpunit.xml"

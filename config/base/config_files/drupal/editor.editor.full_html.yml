@@ -80,19 +80,6 @@ settings:
     drupallink:
       linkit_enabled: true
       linkit_profile: default
-    wordcount:
-      enable: true
-      show_remaining: false
-      show_paragraphs: false
-      show_word_count: true
-      show_char_count: true
-      count_bytes: false
-      count_spaces: true
-      count_html: 0
-      count_line_breaks: false
-      max_words: -1
-      max_chars: -1
-      hard_limit: 1
     tokenbrowser:
       token_types:
         config_pages: config_pages

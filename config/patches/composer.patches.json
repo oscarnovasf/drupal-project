@@ -6,7 +6,8 @@
         },
 
         "drupal/redirect_after_login": {
-            "Error de login en Drupal ^9.2": "https://www.drupal.org/files/issues/2021-06-20/3214949.patch"
+            "Error de login en Drupal ^9.2": "https://www.drupal.org/files/issues/2021-06-20/3214949.patch",
+            "Deprecated call from preg_match in php 8.1": "https://www.drupal.org/files/issues/2022-08-23/redirect_after_login-3291909-7.patch"
         }
     }
 }

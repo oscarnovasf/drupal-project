@@ -12,7 +12,6 @@
     "Drupal",
     "Barrio"
   ],
-  "author": "Óscar Novás",
   "license": "MIT",
   "dependencies": {
     "@popperjs/core": "^2.9.2",
@@ -37,7 +36,6 @@
     "postcss-inline-svg": "^4.1.0",
     "postcss-pxtorem": "^5.1.1",
     "sass": "^1.45.0",
-
     "gulp-remove-sourcemaps": "^1.0.4"
   }
 }
