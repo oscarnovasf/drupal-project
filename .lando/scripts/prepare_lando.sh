@@ -18,8 +18,8 @@
 set -e
 
 # Colores.
-R="\e[0m"  # reset
-Y="\e[33m" # amarillo
+RESET="\033[0m"
+YELLOW="\033[0;33m"
 
 # Control de tiempo de ejecución.
 START=$(date +%s)
@@ -30,13 +30,16 @@ START=$(date +%s)
 ################################################################################
 
 
+# Simplemente imprime una lína por pantalla.
+function linea() {
+  echo '--------------------------------------------------------------------------------'
+}
+
 # Muestra la cabecera de algunas respuestas del script.
 function show_header() {
-  echo -e "
- +-----------------------------------------------------------------------------+
- | ${Y}Preparando contenedor${R}                                                       |
- +-----------------------------------------------------------------------------+
-  "
+  linea
+  echo -e " ${YELLOW}Preparando contenedor${RESET}"
+  linea
 }
 
 # Mensaje de finalización del script.
@@ -46,34 +49,20 @@ function show_bye() {
   RUNTIME=$((END-START))
 
   clear
-  echo "
- Tiempo de ejecución: ${RUNTIME}s
--------------------------------------------------------------------------------
-  "
+  echo " "
+  echo -e " Tiempo de ejecución: ${RUNTIME}s"
+  linea
   exit 0
-}
-
-# Actualización de composer (por si acaso).
-function update_composer() {
-  echo -e "
-  Actualizando ${Y}composer...${R}
- -------------------------------------------------------------------------------
-  "
-  composer self-update
 }
 
 # Instalación y configuración de Oh My Bash.
 function install_ohmybash() {
   if [ -d ~/.oh-my-bash ]; then
-    echo -e "
-  ${Y}Oh My Bash${R} ya está instalado.
- -------------------------------------------------------------------------------
-    "
+    echo -e " ${YELLOW}Oh My Bash${RESET} ya está instalado."
+    linea
   else
-    echo -e "
-  Instalando ${Y}Oh My Bash...${R}
- -------------------------------------------------------------------------------
-    "
+    echo -e " Instalando ${YELLOW}Oh My Bash...${RESET}"
+    linea
     curl -fsSL https://raw.githubusercontent.com/ohmybash/oh-my-bash/master/tools/install.sh | bash
     grep -l OSH_THEME=\"font\" ~/.bashrc|xargs sed -i -e "s/font/agnoster/g"
   fi
@@ -86,7 +75,6 @@ function install_ohmybash() {
 
 
 show_header
-update_composer
 install_ohmybash
 
 show_bye

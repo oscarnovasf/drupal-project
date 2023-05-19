@@ -23,16 +23,24 @@ set -e
 # ##############################################################################
 
 # Colores.
-RESET="\e[0m"
-YELLOW="\e[33m"
-RED="\e[31m"
-GREEN="\e[32m"
+RESET="\033[0m"
+YELLOW="\033[0;33m"
+RED="\033[0;31m"
+GREEN="\033[0;32m"
 
 # Rutas a los diferentes componentes / directorios.
 DRUSH="php -d memory_limit=-1 ./vendor/bin/drush"
 
 # Cargo archivo con las variables de dependencias.
 source "$(dirname $0)"/.variables
+
+# Almacena la existencia de BBDD para realizar la instalación.
+HAS_DB="n"
+
+# Exportación de configuraciones para composer.
+export COMPOSER_ALLOW_SUPERUSER=1;
+export COMPOSER_MEMORY_LIMIT=-1;
+export COMPOSER_PROCESS_TIMEOUT=600
 
 
 # ##############################################################################
@@ -66,7 +74,7 @@ function check_installed() {
     linea
     echo -e " ${RED}El sistema ya está instalado, no se puede ejecutar este script.${RESET}"
     linea
-    exit 2
+    exit 0
   fi
 }
 
@@ -93,6 +101,15 @@ function check_requirements() {
     clear
     linea
     echo -e " ${RED}No se ha encontrado la herramienta JQ.${RESET}"
+    echo -e " ${RED}Visita https://stedolan.github.io/jq/download e instala la versión necesaria.${RESET}"
+    linea
+    exit 4
+  fi
+
+  if ! [ -x "$(command -v pv)" ]; then
+    clear
+    linea
+    echo -e " ${RED}No se ha encontrado la herramienta PV.${RESET}"
     linea
     exit 4
   fi
@@ -104,10 +121,14 @@ function asign_perms() {
   linea
   echo -e " ${YELLOW}Asignando permisos a ficheros...${RESET}"
   linea
-  # Asigno los permisos de manera recurrente.
+
+  # Asigno grupo y propietario a todos los ficheros.
   find . \
     -path ./.git -prune \
-    -o -exec chown "$USER_OWNER":"$USER_GROUP" {} +
+    -o -exec chown "$USER_OWNER":"$USER_GROUP" {} + | pv -pte
+
+  # Me aseguro que puedo ejecutar todos los scripts.
+  find ./scripts/shell/ -type f -iname "*.sh" -exec chmod +x {} \;
 }
 
 # Función que finaliza la ejecución de la instalación.
@@ -147,6 +168,9 @@ function finalize() {
   clear
   linea
   echo -e " ${YELLOW}Drupal instalado correctamente.${RESET}"
+  if [ "$HAS_DB" == "y" ]; then
+    echo -e " ${YELLOW}Es recomendable ejecutar un deploy tras esta instalación.${RESET}"
+  fi
   echo " "
   echo -e " ${YELLOW}Tiempo de ejecución: ${runtime}s${RESET}"
   linea
@@ -192,14 +216,7 @@ function check_database() {
 # Verifica si existe un volcado de la BBDD.
 function check_db_dump() {
   if [ -f ./config/db/data.sql ]; then
-    clear
-    linea
-    echo -e " ${RED}Se ha detectado un volcado de la base de datos previo...${RESET}"
-    echo -e " ${RED}En lugar del script de instalación debe usar el script de deploy.${RESET}"
-    linea
-    echo " "
-    read -n 1 -s -r -p "Pulsa cualquier tecla para continuar..."
-    exit 5
+    HAS_DB="y"
   fi
 }
 
@@ -219,39 +236,6 @@ function run_composer() {
       cat composer.custom.json | jq --arg e "require-dev" --arg data1 "$DATA1" --arg data2 "$DATA2" '.[$e] += { ($data1) : ($data2) }' > composer.custom.json2
       mv -f composer.custom.json{2,}
     done
-
-    # cat composer.custom.json | jq --arg e "require-dev" --arg data1 "hola" --arg data2 "^1.2" '.[$e] += { ($data1) : ($data2) }'
-
-    if [ "$USE_QUALITY_CHECKER" == "y" ]; then
-      IFS=': ' read -r -a array <<< "${QUALITY_CHECKER}"
-      DATA1="${array[0]}"
-      DATA2="${array[1]}"
-      cat composer.custom.json | jq --arg e "require-dev" --arg data1 "$DATA1" --arg data2 "$DATA2" '.[$e] += { ($data1) : ($data2) }'> composer.custom.json2
-      mv -f composer.custom.json{2,}
-    fi
-  fi
-
-  # Añado theme de administración:
-  if [ "$SCRIPT_ADMIN_THEME" == "adminimal" ]; then
-    IFS=': ' read -r -a array <<< "${ADMIN_THEME[0]}"
-    DATA1="${array[0]}"
-    DATA2="${array[1]}"
-    cat composer.custom.json | jq --arg e "require" --arg data1 "$DATA1" --arg data2 "$DATA2" '.[$e] += { ($data1) : ($data2) }'> composer.custom.json2
-    mv -f composer.custom.json{2,}
-  fi
-  if [ "$SCRIPT_ADMIN_THEME" == "mediteran" ]; then
-    IFS=': ' read -r -a array <<< "${ADMIN_THEME[1]}"
-    DATA1="${array[0]}"
-    DATA2="${array[1]}"
-    cat composer.custom.json | jq --arg e "require" --arg data1 "$DATA1" --arg data2 "$DATA2" '.[$e] += { ($data1) : ($data2) }'> composer.custom.json2
-    mv -f composer.custom.json{2,}
-  fi
-  if [ "$SCRIPT_ADMIN_THEME" == "root" ]; then
-    IFS=': ' read -r -a array <<< "${ADMIN_THEME[2]}"
-    DATA1="${array[0]}"
-    DATA2="${array[1]}"
-    cat composer.custom.json | jq --arg e "require" --arg data1 "$DATA1" --arg data2 "$DATA2" '.[$e] += { ($data1) : ($data2) }'> composer.custom.json2
-    mv -f composer.custom.json{2,}
   fi
 
   # Añado custom theme:
@@ -279,15 +263,19 @@ function set_development() {
   echo -e " ${YELLOW}Estableciendo opciones de desarrollo...${RESET}"
   linea
 
+  chmod 777 ${WEB_ROOT}/sites/default
+
   if [ "$SET_PRODUCTION" == "y" ]; then
-    FILE=$(pwd)/web/sites/default/settings.develop.php
+    FILE=$(pwd)/${WEB_ROOT}/sites/default/settings.develop.php
     if [ -f "$FILE" ]; then
-      mv "${FILE}" "$(pwd)"/web/sites/default/_settings.develop.php
+      chmod 777 ${FILE}
+      mv "${FILE}" "$(pwd)"/${WEB_ROOT}/sites/default/_settings.develop.php
     fi
   else
-    FILE=$(pwd)/web/sites/default/_settings.develop.php
+    FILE=$(pwd)/${WEB_ROOT}/sites/default/_settings.develop.php
     if [ -f "$FILE" ]; then
-      mv "${FILE}" "$(pwd)"/web/sites/default/settings.develop.php
+      chmod 777 ${FILE}
+      mv "${FILE}" "$(pwd)"/${WEB_ROOT}/sites/default/settings.develop.php
     fi
   fi
 }
@@ -318,8 +306,10 @@ function activate_modules() {
     echo " "
     ${DRUSH} -y en "${i}"
   done
+}
 
-  # Módulos de desarrollo.
+# Activa los módulos de desarrollo si procede.
+function activate_devel_modules() {
   if [ "$SET_PRODUCTION" == "n" ]; then
     clear
     linea
@@ -333,6 +323,14 @@ function activate_modules() {
       echo " "
       ${DRUSH} -y en "${i}"
     done
+
+    clear
+    linea
+    echo -e " ${YELLOW}Importando configuraciones iniciales...${RESET}"
+    linea
+
+    echo ' '
+    ${DRUSH} config-import --partial --source="$(pwd)"/config/base/config_files/develop/ -y
   fi
 }
 
@@ -351,6 +349,7 @@ function create_manager() {
   # Asigno permisos por defecto al usuario manager.
   ${DRUSH} role-add-perm "manager" "\
     access site in maintenance mode, \
+    access site reports, \
     access taxonomy overview, \
     access toolbar, \
     access user profiles, \
@@ -360,12 +359,15 @@ function create_manager() {
     delete any webform submission, \
     edit any page content, \
     edit any webform submission, \
+    edit config_pages entity, \
     revert all revisions, \
     use text format full_html, \
     view all revisions, \
     view any webform submission, \
+    view config_pages entity, \
     view own unpublished content, \
-    view the administration theme \
+    view the administration theme, \
+    view user email addresses \
   "
 }
 
@@ -382,12 +384,17 @@ function clear_drupal() {
   ${DRUSH} views:disable who_s_new
   ${DRUSH} views:disable who_s_online
 
-  # Desactivo módulos que no se usan normalmente.
+  # Elimino contenidos para poder desactivar el módulo.
   ${DRUSH} entity:delete shortcut -y
 
-  ${DRUSH} -y pm:uninstall \
-    shortcut, \
-    tour
+  # Desactivo módulos que no se usan normalmente.
+  for i in "${CORE_MODULES_DISABLED[@]}"; do
+    echo " "
+    echo -e " ${GREEN}Desactivando ${i}...${RESET}"
+    linea
+    echo " "
+    ${DRUSH} -y pm:uninstall "${i}"
+  done
 }
 
 # Importa las configuraciones base.
@@ -408,37 +415,6 @@ function import_config() {
   # Realizo importaciones de configuraciones (Vistas).
   echo ' '
   ${DRUSH} config-import --partial --source="$(pwd)"/config/base/config_files/vistas/ -y
-
-  # Realizo importaciones de configuraciones (Desarrollo).
-  if [ "$SET_PRODUCTION" == "y" ]; then
-    echo ' '
-    ${DRUSH} config-import --partial --source="$(pwd)"/config/base/config_files/develop/ -y
-  fi
-}
-
-# Instala/activa la plantilla de configuración.
-function install_admin_theme() {
-  if [ "$SCRIPT_ADMIN_THEME" != "default" ]; then
-    clear
-    linea
-    echo -e " ${YELLOW}Activación de la plantilla de administración...${RESET}"
-    linea
-
-    if [ "$SCRIPT_ADMIN_THEME" == "adminimal" ]; then
-      ${DRUSH} theme:enable adminimal_theme -y
-      ${DRUSH} config-set system.theme admin adminimal_theme -y
-    fi
-
-    if [ "$SCRIPT_ADMIN_THEME" == "mediteran" ]; then
-      ${DRUSH} theme:enable mediteran -y
-      ${DRUSH} config-set system.theme admin mediteran -y
-    fi
-
-    if [ "$SCRIPT_ADMIN_THEME" == "root" ]; then
-      ${DRUSH} theme:enable root -y
-      ${DRUSH} config-set system.theme admin root -y
-    fi
-  fi
 }
 
 # Instala/activa la plantilla custom.
@@ -616,11 +592,6 @@ if [ "$DRUPAL_ENV" == "stg" ]; then
   SET_PRODUCTION="y"
 fi
 
-# Exportación de configuraciones para composer.
-export COMPOSER_ALLOW_SUPERUSER=1;
-export COMPOSER_MEMORY_LIMIT=-1;
-export COMPOSER_PROCESS_TIMEOUT=600
-
 # Ajustes para Plesk en caso de ser necesario.
 if [ "$SCRIPT_SERVER_HAS_PLESK" == "y" ]; then
   export PATH=/opt/plesk/php/${SCRIPT_SERVER_PLESK_PHP_VERSION}/bin:$PATH;
@@ -639,35 +610,52 @@ check_db_dump
 
 clear
 
-# Instalo las dependencias según el tipo de entorno.
-run_composer
 
-# Activo/desactivo opciones de desarrollo.
-set_development
+if [ "$HAS_DB" == "y" ]; then
+  # Ejecuto instalación de composer.
+  echo " "
+  linea
+  echo -e " ${YELLOW}Instalando dependencias...${RESET}"
+  linea
+  composer install
 
-# Realizo la instalación de Drupal.
-install_drupal
+  # Realizo la importación de la base de datos.
+  clear
+  linea
+  echo -e " ${YELLOW}Realizando volcado de la base de datos...${RESET}"
+  linea
+  pv ./config/db/data.sql | ${DRUSH} sql-cli
+else
+  # Instalo las dependencias según el tipo de entorno.
+  run_composer
 
-# Activo módulos.
-activate_modules
+  # Activo/desactivo opciones de desarrollo.
+  set_development
 
-# Creo usuario manager.
-create_manager
+  # Realizo la instalación de Drupal.
+  install_drupal
 
-# Elimino cosas innecesarias de Drupal.
-clear_drupal
+  # Activo módulos.
+  activate_modules
 
-# Importo las configuraciones base.
-import_config
+  # Creo usuario manager.
+  create_manager
 
-# Instalo/activo la plantilla de configuración.
-install_admin_theme
+  # Elimino cosas innecesarias de Drupal.
+  clear_drupal
 
-# Instalo/activo la plantilla custom.
-install_custom_theme
+  # Importo las configuraciones base.
+  import_config
 
-# Como último paso realizo un backup de la BBDD.
-dump_bbdd
+  # Instalo/activo la plantilla custom.
+  install_custom_theme
+
+  # Realizo backup de la BBDD antes de activar los módulos de desarrollo.
+  dump_bbdd
+
+  # Activo módulos de desarrollo.
+  activate_devel_modules
+fi
 
 
 # ##############################################################################

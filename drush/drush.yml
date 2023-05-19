@@ -6,9 +6,14 @@
 # Edit or remove this file as needed.
 command:
   sql:
+    cli:
+      options:
+        # Activar auto-complete en MySQL.
+        extra: "--auto-rehash"
     dump:
       options:
         structure-tables-key: common
+        extra-dump: "--no-tablespaces"
 
   site:
     install:

@@ -1,0 +1,32 @@
+# This file contains example services overrides.
+#
+# Adjust the path and enable with this line in settings.php
+# $settings['container_yamls'][] = $app_root . '/modules/contrib/igbinary/example.services.yml';
+#
+# Or copy & paste the desired services into sites/default/services.yml.
+#
+# Note that the igbinary module must be enabled for this to work.
+
+services:
+  # Replaces the default serializer by igbinary compressed for keyvalue stores.
+  keyvalue.database:
+    class: Drupal\Core\KeyValueStore\KeyValueDatabaseFactory
+    arguments: ['@serialization.igbinary_gz', '@database']
+  keyvalue.expirable.database:
+    class: Drupal\Core\KeyValueStore\KeyValueDatabaseExpirableFactory
+    arguments: ['@serialization.igbinary_gz', '@database']
+
+  # Replaces the default serializer by igbinary compressed for the redis cache
+  # backends. See https://www.drupal.org/node/2143149
+  cache.backend.redis:
+    class: Drupal\redis\Cache\CacheBackendFactory
+    arguments: ['@redis.factory', '@cache_tags.invalidator.checksum', '@serialization.igbinary_gz']
+
+  # Replaces the default serializer by igbinary compressed for cache backends.
+  # That requires https://www.drupal.org/node/839444 to be committed first.
+  cache.backend.database:
+    class: Drupal\Core\Cache\DatabaseBackendFactory
+    arguments: ['@serialization.igbinary_gz', '@database', '@cache_tags.invalidator.checksum']
+  cache.backend.memory:
+    class: Drupal\Core\Cache\MemoryBackendFactory
+    arguments: ['@serialization.igbinary_gz']

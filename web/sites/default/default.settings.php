@@ -1,5 +1,8 @@
 <?php
 
+use Dotenv\Dotenv;
+use Drupal\Core\Installer\InstallerKernel;
+
 // @codingStandardsIgnoreFile
 
 /**
@@ -57,6 +60,11 @@
  * register custom, site-specific service definitions and/or swap out default
  * implementations with custom ones.
  */
+
+if (file_exists($app_root . '/../env')) {
+  $dotenv = Dotenv::createImmutable(__DIR__);
+  $dotenv->load();
+}
 
 /**
  * Database settings:
@@ -249,6 +257,19 @@ $databases = [];
  *   ];
  * @endcode
  */
+$databases['default']['default'] = [
+  'database' => $_ENV['DRUPAL_DB_DATABASE'],
+  'driver' => $_ENV['DRUPAL_DB_DRIVER'],
+  'host' => $_ENV['DRUPAL_DB_HOSTNAME'],
+  'namespace' => $_ENV['DRUPAL_DB_NAMESPACE'],
+  'password' => $_ENV['DRUPAL_DB_PASSWORD'],
+  'port' => $_ENV['DRUPAL_DB_PORT'],
+  'prefix' => $_ENV['DRUPAL_DB_PREFIX'],
+  'username' => $_ENV['DRUPAL_DB_USER'],
+  'init_commands' => [
+    'isolation_level' => 'SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED',
+  ],
+];
 
 /**
  * Location of the site configuration files.
@@ -290,7 +311,7 @@ $databases = [];
  *   $settings['hash_salt'] = file_get_contents('/home/example/salt.txt');
  * @endcode
  */
-# $settings['hash_salt'] = 'RSnQHBqNZr-2cKPRnPQcFV7DydyeYM0dMRKE3osXSFymgNILNTW49_d-PjBKofPmKTJYMllEFQ';
+$settings['hash_salt'] = $_ENV['DRUPAL_HASH_SALT'];
 
 /**
  * Deployment identifier.
@@ -300,7 +321,7 @@ $databases = [];
  * custom code that changes the container, changing this identifier will also
  * allow the container to be invalidated as soon as code is deployed.
  */
-# $settings['deployment_identifier'] = \Drupal::VERSION;
+$settings['deployment_identifier'] = \Drupal::VERSION;
 
 /**
  * Access control for update.php script.
@@ -544,7 +565,7 @@ if ($settings['hash_salt']) {
  * See https://www.drupal.org/documentation/modules/file for more information
  * about securing private files.
  */
-# $settings['file_private_path'] = '';
+$settings['file_private_path'] = $app_root . '/../private_files';
 
 /**
  * Temporary file path:
@@ -557,7 +578,8 @@ if ($settings['hash_salt']) {
  *
  * @see \Drupal\Component\FileSystem\FileSystem::getOsTemporaryDirectory()
  */
-# $settings['file_temp_path'] = '/tmp';
+$config['system.file']['path']['temporary'] = $app_root . '/../tmp';
+$settings['file_temp_path'] = '../tmp';
 
 /**
  * Session write interval:
@@ -730,6 +752,10 @@ $settings['container_yamls'][] = $app_root . '/' . $site_path . '/services.yml';
  * will allow the site to run off of all variants of example.com and
  * example.org, with all subdomains included.
  */
+$settings['trusted_host_patterns'] = [
+  '^' . $_ENV['DRUPAL_TRUSTED_HOST'] . '$',
+  '^.+\.' . $_ENV['DRUPAL_TRUSTED_HOST'] . '$',
+];
 
 /**
  * The default list of directories that will be ignored by Drupal's file API.
@@ -778,6 +804,94 @@ $settings['entity_update_backup'] = TRUE;
  */
 $settings['migrate_node_migrate_type_classic'] = FALSE;
 
+/* Error with Permissions-Policy header: Origin trial controlled feature
+ * not enabled: 'interest-cohort'. */
+$settings['block_interest_cohort'] = FALSE;
+
+$config['locale.settings']['translation']['path'] = '../config/translations';
+$settings['config_sync_directory'] = $app_root . '/../config/sync/global';
+$settings['default_content_deploy_content_directory'] = '../config/sync/content';
+
+$config['file.settings']['make_unused_managed_files_temporary'] = TRUE;
+
+/**
+ * Config split (Activo el entorno actual).
+ */
+// $config['config_split.config_split.' . $_ENV['DRUPAL_ENV']]['status'] = TRUE;
+$settings['config_exclude_modules'] = explode(',', $_ENV['CONFIG_EXCLUDE_MODULES']);
+
+/**
+ * Indicador del entorno activo.
+ */
+$environments_colors = [
+  'loc' => '#aa3300',
+  'dev' => '#ffff00',
+  'stg' => '#aa5501',
+  'pro' => '#5C8F2F'
+];
+if (isset($environments_colors[$_ENV['DRUPAL_ENV']])) {
+  $config['environment_indicator.indicator']['bg_color'] = $environments_colors[$_ENV['DRUPAL_ENV']];
+  $config['environment_indicator.indicator']['name'] = strtoupper($_ENV['DRUPAL_ENV']);
+}
+else {
+  $config['environment_indicator.indicator']['bg_color'] = '';
+  $config['environment_indicator.indicator']['fg_color'] = '';
+  $config['environment_indicator.indicator']['name'] = '';
+  $config['environment_indicator.settings']['favicon'] = '';
+}
+
+/**
+ * Redis/ KeyDB.
+ */
+if (!empty($_ENV['REDIS_HOST']) &&
+    !empty($_ENV['REDIS_PORT']) &&
+    !InstallerKernel::installationAttempted()) {
+  $settings['redis.connection']['persistent'] = TRUE;
+  $settings['redis.connection']['interface'] = 'PhpRedis';
+  $settings['redis.connection']['host'] = $_ENV['REDIS_HOST'];
+  $settings['redis.connection']['port'] = $_ENV['REDIS_PORT'];
+  if ($_ENV['REDIS_PASS']) {
+    $settings['redis.connection']['password'] = $_ENV['REDIS_PASS'];
+  }
+  $settings['redis.connection']['base'] = $_ENV['REDIS_DB'] ?: 0;
+  $settings['redis.settings']['perm_ttl'] = $_ENV['REDIS_TTL'];
+
+  $settings['cache_prefix'] = $_ENV['PROJECT_CODE'] . '_';
+
+  $settings['cache']['default'] = 'cache.backend.redis';
+
+  $settings['container_yamls'][] = $app_root . '/sites/cache.services.yml';
+  $settings['container_yamls'][] = $app_root . '/sites/igbinary.services.yml';
+}
+
+/* APCU */
+$settings['cache']['bins']['bootstrap'] = 'cache.backend.chainedfast';
+$settings['cache']['bins']['discovery'] = 'cache.backend.chainedfast';
+$settings['cache']['bins']['config'] = 'cache.backend.chainedfast';
+
+/**
+ * Conjunto de configuraciones específicas para cada entorno.
+ */
+switch ($_ENV['DRUPAL_ENV']) {
+  case 'prod':
+  case 'stg':
+    $config['stage_file_proxy.settings']['origin'] = NULL;
+    break;
+
+  case 'loc':
+  case 'dev':
+  default:
+    if (!empty($_ENV['DRUPAL_PROD_URL'])) {
+      $config['stage_file_proxy.settings']['origin'] = $_ENV['DRUPAL_PROD_URL'];
+    }
+    /* Con esto nos aseguramos que no se nos escapan las configuraciones de
+     * desarrollo a producción */
+    if (file_exists($app_root . '/' . $site_path . '/settings.develop.php')) {
+      include $app_root . '/' . $site_path . '/settings.develop.php';
+    }
+    break;
+}
+
 /**
  * Load local development override configuration, if available.
  *
@@ -791,80 +905,6 @@ $settings['migrate_node_migrate_type_classic'] = FALSE;
  *
  * Keep this code block at the end of this file to take full effect.
  */
-#
-# if (file_exists($app_root . '/' . $site_path . '/settings.local.php')) {
-#   include $app_root . '/' . $site_path . '/settings.local.php';
-# }
-
-$settings['hash_salt'] = getenv('DRUPAL_HASH_SALT');
-
-$settings['trusted_host_patterns'] = [
-  '^' . getenv('DRUPAL_TRUSTED_HOST') . '$',
-  '^.+\.' . getenv('DRUPAL_TRUSTED_HOST') . '$',
-];
-
-$databases['default']['default'] = [
-  'database' => getenv('DRUPAL_DB_DATABASE'),
-  'driver' => getenv('DRUPAL_DB_DRIVER'),
-  'host' => getenv('DRUPAL_DB_HOSTNAME'),
-  'namespace' => getenv('DRUPAL_DB_NAMESPACE'),
-  'password' => getenv('DRUPAL_DB_PASSWORD'),
-  'port' => getenv('DRUPAL_DB_PORT'),
-  'prefix' => getenv('DRUPAL_DB_PREFIX'),
-  'username' => getenv('DRUPAL_DB_USER'),
-];
-
-/* Error with Permissions-Policy header: Origin trial controlled feature
- * not enabled: 'interest-cohort'. */
-$settings['block_interest_cohort'] = FALSE;
-
-/* Establezco los directorios a usar */
-$config['system.file']['path']['temporary'] = $app_root . '/../tmp';
-$settings['file_temp_path'] = '../tmp';
-
-$config['locale.settings']['translation']['path'] = '../config/translations';
-$settings['config_sync_directory'] = $app_root . '/../config/sync/global';
-$settings['file_private_path'] = $app_root . '/../private_files';
-
-$config['file.settings']['make_unused_managed_files_temporary'] = TRUE;
-
-/**
- * Config split (Activo el entorno actual).
- */
-$config['config_split.config_split.' . getenv('DRUPAL_ENV')]['status'] = TRUE;
-
-/**
- * Indicador del entorno activo.
- */
-$environments_colors = [
-  'loc' => '#aa3300',
-  'dev' => '#ffff00',
-  'stg' => '#aa5501',
-  'pro' => '#5C8F2F'
-];
-if (isset($environments_colors[getenv('DRUPAL_ENV')])) {
-  $config['environment_indicator.indicator']['bg_color'] = $environments_colors[getenv('DRUPAL_ENV')];
-  $config['environment_indicator.indicator']['name'] = strtoupper(getenv('DRUPAL_ENV'));
-}
-else {
-  $config['environment_indicator.indicator']['bg_color'] = '';
-  $config['environment_indicator.indicator']['fg_color'] = '';
-  $config['environment_indicator.indicator']['name'] = '';
-  $config['environment_indicator.settings']['favicon'] = '';
-}
-
-/**
- * Compruebo si existe el settings.local.php.
- * (Añadido para compatibilidad con Lullabot/drupal9ci)
- */
 if (file_exists($app_root . '/' . $site_path . '/settings.local.php')) {
   include $app_root . '/' . $site_path . '/settings.local.php';
-}
-
-/**
- * Compruebo si existen configuraciones de desarrollo y las incluyo.
- * (Esta debe ser siempre la última parte del script.)
- */
-if (file_exists($app_root . '/' . $site_path . '/settings.develop.php')) {
-  include $app_root . '/' . $site_path . '/settings.develop.php';
 }

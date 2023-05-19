@@ -22,10 +22,10 @@ set -e
 # ##############################################################################
 
 # Colores.
-RESET="\e[0m"
-YELLOW="\e[33m"
-RED="\e[31m"
-GREEN="\e[32m"
+RESET="\033[0m"
+YELLOW="\033[0;33m"
+RED="\033[0;31m"
+GREEN="\033[0;32m"
 
 # Script actual.
 SELF=$(basename "${0}")

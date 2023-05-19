@@ -2,15 +2,33 @@
 /.idea/
 /.vscode/**
 !/.vscode/tasks.json
+*.un~
 .editorconfig
 
+# Archivos de log.
 debug.log
 
-# Archivos MAC
+# Archivos del SO.
 .DS_Store
+thumbs.db
+Thumbs.db
+._*
+
+# Packages.
+*.7z
+*.dmg
+*.gz
+*.bz2
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
+*.tgz
 
 # Archivos de desarrollo.
 /node_modules/
+.sass-cache
 
 # Archivos de documentación (phpdox).
 /.tmp-doc/

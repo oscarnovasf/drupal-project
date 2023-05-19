@@ -1,47 +1,88 @@
 name: [PROYECTO]
-recipe: drupal9
+recipe: drupal10
 
 config:
   webroot: web
-  # Define la versión de PHP (opcional => 7.4 por defecto).
-  php: 8.1
-  # Definimos versiones de composer y drush (opcional).
+  php: '8.2'
   composer_version: 2-latest
-  drush: ^10
-  # Activamos XDebug => ponemos false si no lo queremos.
-  xdebug: debug
+  drush: ^11
+  xdebug: false
   config:
-    php: utils/lando/php/php.ini
+    php: ./.lando/php/php.ini
 
 services:
   # Configuración del contenedor principal.
   appserver:
     build:
-      - ./utils/lando/scripts/prepare_lando.sh
+      - ./.lando/scripts/prepare_lando.sh
     build_as_root:
-      - ./utils/lando/scripts/prepare_lando_root.sh
+      - find ./.lando/scripts/ -type f -iname "*.sh" -exec chmod +x {} \;
+      - ./.lando/scripts/prepare_lando_root.sh
     run:
+      - find ./scripts/shell/ -type f -iname "*.sh" -exec chmod +x {} \;
       - ./scripts/shell/install.sh
+    overrides:
+      environment:
+        # PHPUnit.
+        SIMPLETEST_BASE_URL: "https://[PROYECTO].lndo.site"
+        SIMPLETEST_DB: "mysql://[DB_USER]:[DB_PASSWORD]@database/[DB_DATABASE]"
+        # Mailhog.
+        PHP_SENDMAIL_PATH: '/usr/sbin/sendmail -S mailhog:1025'
 
   # Configuración de la base de datos.
+  # database: disabled # No activa el servicio de database.
+  # Uso mariadb por defecto porque en algunas distribuciones de Linux mysql falla.
   database:
-    type: mysql
+    type: mariadb
     portforward: 3307
     creds:
       user: [DB_USER]
-      password: [DB_PASSWORD]
       database: [DB_DATABASE]
+      password: [DB_PASSWORD]
     # Esta configuración se puede usar para generar nuevas bases de datos,
     # nuevos usuarios..., es ideal para multi-site y evitar tener que crear
     # varios contenedores con bases de datos.
     # run:
-    #   - mysql -uroot < /app/utils/lando/db-setup.sql
+    #   - mysql -uroot < /app/.lando/db-setup.sql
+
+  # Captura de correos.
+  mailhog:
+    type: mailhog
+    portforward: true
+    hogfrom:
+      - appserver
+
+  # Gestión de la base de datos.
+  adminer:
+    type: compose
+    services:
+      image: dehy/adminer
+      command: '/bin/s6-svscan /etc/services.d'
+    portforward: true
+    depends_on:
+      - database
+
+  # Gestión de caché.
+  cache:
+    type: redis
+    portforward: 6380
+    persist: true
 
 proxy:
   appserver:
     - [PROYECTO].lndo.site
+    - cdn.[PROYECTO].lndo.site
+  mailhog:
+    - mail.[PROYECTO].lndo.site
+  adminer:
+    - db.[PROYECTO].lndo.site
 
 tooling:
+
+  # ############################################################################
+  #  Zona de herramientas.
+  # ############################################################################
+
   # lando gulp
   gulp:
     service: appserver
@@ -57,6 +98,28 @@ tooling:
     dir: /app/web/themes/custom/[THEME_MACHINE_NAME]/
     cmd:
       - npm
+
+  # lanto test
+  test:
+    service: appserver
+    description: Ejecución PHPUnit pasando la suite que queremos ejecutar.
+    cmd: "php /app/vendor/bin/phpunit -c /app/phpunit.xml --testsuite"
+
+  # lando redis-cli
+  redis-cli:
+    service: cache
+    description: Ejecución del cli de Redis.
+
+  # ############################################################################
+  #  Zona de Scripts personalizados.
+  # ############################################################################
+
+  # lando druli
+  druli:
+    service: appserver
+    description: Ejecuta 'drush uli' con la URI del proyecto.
+    cmd:
+      - appserver: drush uli --uri=https://[PROYECTO].lndo.site
 
   # lando db [ex|im]
   db:
@@ -86,6 +149,7 @@ tooling:
     description: Borra la instalación actual y restablece el proyecto a su estado inicial.
     cmd:
       - ./scripts/shell/initialize.sh
+    user: root
 
   # lando phpcs
   phpcs:
@@ -100,3 +164,22 @@ tooling:
     description: Importar o exportar traducciones.
     cmd:
       - ./scripts/shell/trans.sh
+
+  # lando precommit
+  precommit:
+    service: appserver
+    description: Operaciones previas al commit.
+    cmd:
+      - ./scripts/shell/pre_commit.sh
+
+  # ############################################################################
+  #  Zona de modificación de Lando.
+  # ############################################################################
+
+  # lando xdebug [on|off]
+  xdebug:
+    service: appserver
+    description: Activar/Desactivar xdebug en apache.
+    cmd:
+      - ./.lando/scripts/xdebug.sh
+    user: root

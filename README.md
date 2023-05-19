@@ -1,4 +1,4 @@
-Drupal Project - 9.x
+Drupal Project
 ===
 
 <div style="margin: 35px 0 25px 0">
@@ -16,11 +16,15 @@ Drupal Project - 9.x
 ## Instalación
 
 * ### Requerimientos
-  * Es necesario tener instalada la `versión 2.0` de
+  * Es necesario tener instalada la `versión ^2.0` de
     [Composer](https://getcomposer.org/doc/00-intro.md#installation-linux-unix-osx)
     o superior.
   * Es necesario tener instalada la herramienta `jq` para la línea de comandos.
     [JQ](https://stedolan.github.io/jq/).
+  * Es necesario tener instalada la herramienta `pv` para la línea de comandos.
+    [PV](http://www.ivarch.com/programs/pv.shtml).
+  * Si se quiere poder enviar una url de nuestro proyecto en local con Lando, es
+    necesario instalar y configurar `ngrok` [NGROK](https://ngrok.com/).
 
 * ### Proceso de instalación: Máquina local/servidor
   * Copiamos el contenido del proyecto en la carpeta raíz de nuestro servidor.
@@ -37,11 +41,19 @@ Drupal Project - 9.x
   * Creamos el archivo `.env` a partir de `.env.example` y establecemos los
     valores a las variables.
   * Establecemos el nombre del proyecto en nuestro `composer.custom.json`.
-  * Ejecutamos `lando start` para montar los contenedores del proyecto
-    (cuando salga la pantalla de Oh-My-Bash escribimos exit).
+  * Ejecutamos `lando start` para montar los contenedores del proyecto.
 
     > Al usar lando, es recomendable que todos los scripts se ejecuten dentro
     > del contenedor, salvo que se use `lando drush` o `lando composer`.
+
+* ### Notas sobre LANDO:
+  * Es posible crear un `launch` a través de un alias que nos permita ejecutar
+    lando start y, al mismo tiempo, abrir nuestro proyecto en el explorador web.
+    El alias a crear sería (con drush launch instalado en nuestra máquina):
+
+    ```bash
+      alias launch="lando start && sleep 5 && open $(drush uli -l $(lando info --format json | jq '.[0].urls' | jq -r '.[1]'))"
+    ```
 
 ## ¿Qué hace esta plantilla?
 
@@ -140,6 +152,26 @@ Al instalar con este `composer.json` se realizan las siguientes tareas:
 
     > Si se usa lando este comando está disponible como `lando phpcs`.
 
+  * #### pre_commit.sh
+    > Script para realizar tareas previas al commit.
+
+    - Realiza la exportación de entidades como taxonomías, alias, config_pages,
+      nodos..., todo ello se debe incluir manualmente en el script.
+
+    > Si se usa lando este comando está disponible como `lando precommit`.
+
+  * ### share.sh
+    > Script para generar un tunel y poder compartir nuestro proyecto local
+    > fuera de nuestra red.
+
+    Este script hace uso de [ngrok](https://ngrok.com/) por lo que será necesario
+    crearse una cuenta y configurar el API Key en nuestro entorno local.  
+    Al ejecutarse se genera una url que podemos utilizar desde una máquina
+    externa para conectarnos a nuestro sistema.
+
+    > El script usa lando para obtener la url pero no se puede ejecutar dentro
+    > de lando, por lo que no está disponible ningún atajo al comando.
+
   * #### trans.sh
     > Script para importar/exportar las traducciones (excepto el inglés).
 
@@ -154,87 +186,8 @@ Al instalar con este `composer.json` se realizan las siguientes tareas:
 
 ## Módulos incluidos en las diferentes instalaciones
 
-   * ### Entorno de Producción:
-     * #### Módulos de Administración (Backend)
-       * (drupal/admin_toolbar)[https://www.drupal.org/project/admin_toolbar]
-       * (drupal/adminimal_admin_toolbar)[https://www.drupal.org/project/adminimal_admin_toolbar]
-       * (drupal/allowed_formats)[https://www.drupal.org/project/allowed_formats]
-       * (drupal/amswap)[https://www.drupal.org/project/amswap]
-       * (drupal/config_pages)[https://www.drupal.org/project/config_pages]
-       * (drupal/field_permissions)[https://www.drupal.org/project/field_permissions]
-       * (drupal/module_filter)[https://www.drupal.org/project/module_filter]
-       * (drupal/paragraphs)[https://www.drupal.org/project/paragraphs]
-       * (drupal/redirect_after_login)[https://www.drupal.org/project/redirect_after_login]
-       * (drupal/smtp)[https://www.drupal.org/project/smtp]
-     * #### Módulos para Deploy/Optimización:
-       * (drupal/db_maintenance)[https://www.drupal.org/project/db_maintenance]
-       * (drupal/config_filter)[https://www.drupal.org/project/config_filter]
-       * (drupal/config_ignore)[https://www.drupal.org/project/config_ignore]
-       * (drupal/config_split)[https://www.drupal.org/project/config_split]
-       * (drupal/entity_update)[https://www.drupal.org/project/entity_update]
-       * (drupal/environment_indicator)[https://www.drupal.org/project/environment_indicator]
-       * (drupal/file_delete)[https://www.drupal.org/project/file_delete]
-       * (drupal/svg_image)[https://www.drupal.org/project/svg_image]
-       * (drupal/webp)[https://www.drupal.org/project/webp]
-     * #### Módulos de ayuda en el Desarrollo:
-       * (drupal/context)[https://www.drupal.org/project/context]
-     * #### Módulos de Formularios:
-       * (drupal/antibot)[https://www.drupal.org/project/antibot]
-       * (drupal/captcha)[https://www.drupal.org/project/captcha]
-       * (drupal/recaptcha)[https://www.drupal.org/project/recaptcha]
-       * (drupal/view_password)[https://www.drupal.org/project/view_password]
-       * (drupal/webform)[https://www.drupal.org/project/webform]
-       * (drupal/webform_views)[https://www.drupal.org/project/webform_views]
-     * #### Módulos de ayuda en la Maquetación:
-       * (drupal/block_class)[https://www.drupal.org/project/block_class]
-       * (drupal/block_exclude_pages)[https://www.drupal.org/project/block_exclude_pages]
-       * (drupal/body_roles_classes)[https://www.drupal.org/project/body_roles_classes]
-       * (drupal/field_group)[https://www.drupal.org/project/field_group]
-       * (drupal/page_specific_class)[https://www.drupal.org/project/page_specific_class]
-       * (drupal/smart_trim)[https://www.drupal.org/project/smart_trim]
-       * (drupal/token_filter)[https://www.drupal.org/project/token_filter]
-       * (drupal/twig_field_value)[https://www.drupal.org/project/twig_field_value]
-       * (drupal/twig_tools)[https://www.drupal.org/project/twig_tools]
-       * (drupal/twig_tweak)[https://www.drupal.org/project/twig_tweak]
-     * #### Módulos para SEO:
-       * (drupal/easy_breadcrumb)[https://www.drupal.org/project/easy_breadcrumb]
-       * (drupal/metatag)[https://www.drupal.org/project/metatag]
-       * (drupal/pathauto)[https://www.drupal.org/project/pathauto]
-       * (drupal/redirect)[https://www.drupal.org/project/redirect]
-       * (drupal/simple_sitemap)[https://www.drupal.org/project/simple_sitemap]
-     * #### Módulos para complementar Views:
-       * (drupal/better_exposed_filters)[https://www.drupal.org/project/better_exposed_filters]
-       * (drupal/verf)[https://www.drupal.org/project/verf]
-       * (drupal/views_ajax_history)[https://www.drupal.org/project/views_ajax_history]
-       * (drupal/views_bulk_operations)[https://www.drupal.org/project/views_bulk_operations]
-       * (drupal/views_data_export)[https://www.drupal.org/project/views_data_export]
-     * #### Módulos para complementar CKEditor:
-       * (drupal/ckeditor_accordion)[https://www.drupal.org/project/ckeditor_accordion]
-       * (drupal/ckwordcount)[https://www.drupal.org/project/ckwordcount]
-       * (drupal/editor_advanced_link)[https://www.drupal.org/project/editor_advanced_link]
-       * (drupal/imce)[https://www.drupal.org/project/imce]
-     * #### Módulos con librerías:
-       * (drupal/jquery_ui_accordion)[https://www.drupal.org/project/jquery_ui_accordion]
-       * (drupal/jquery_ui_touch_punch)[https://www.drupal.org/project/jquery_ui_touch_punch]
-     * #### Módulos para cumplimiento Legal:
-       * (drupal/cookies)[https://www.drupal.org/project/cookies]
-     * #### Módulos que son dependencias de otros:
-       * (drupal/entity_reference_revisions)[https://www.drupal.org/project/entity_reference_revisions]
-     * #### Otros módulos:
-       * (drupal/entity_print)[https://www.drupal.org/project/entity_print]
-       * (drupal/linkit)[https://www.drupal.org/project/linkit]
-
-   * ### Desarrollo
-     * (drupal/coder)[https://www.drupal.org/project/coder]
-     * (drupal/config_delete)[https://www.drupal.org/project/config_delete]
-     * (drupal/delete_all)[https://www.drupal.org/project/delete_all]
-     * (drupal/devel)[https://www.drupal.org/project/devel]
-     * (drupal/devel_kint_extras)[https://www.drupal.org/project/devel_kint_extras]
-     * (drupal/devel_php)[https://www.drupal.org/project/devel_php]
-     * (drupal/features)[https://www.drupal.org/project/features]
-     * (drupal/module_missing_message_fixer)[https://www.drupal.org/project/module_missing_message_fixer]
-     * (drupal/potx)[https://www.drupal.org/project/potx]
-     * (drupal/twig_xdebug)[https://www.drupal.org/project/twig_xdebug]
+   El listado completo de módulos se puede ver en el archivo
+   `scripts/shell/.variables`
 
 ## FAQs
 
@@ -348,31 +301,10 @@ Al instalar con este `composer.json` se realizan las siguientes tareas:
     }
   ```
 
-* ### ¿Cómo saltarse la validación de los commits?
-
-  Aunque no debería saltarse esta comprobación, es posible realizar un commit
-  sin que ésta se realice, basta con añadir "-n":
-
-  ```bash
-    git commit -m "Random commit mesage" -n
-  ```
-
-  Si lo que queremos es desactivar esta validación ejecutamos:
-
-  ```bash
-    ./vendor/bin/grumphp git:deinit
-  ```
-
-  Para volver a activarla:
-
-  ```bash
-    ./vendor/bin/grumphp git:init
-  ```
-
 ---
 
-[version]: v2.0.1
-[version-badge]: https://img.shields.io/badge/Versión-2.0.1-blue.svg
+[version]: v3.0.0
+[version-badge]: https://img.shields.io/badge/Versión-3.0.0-blue.svg
 
 [license]: LICENSE.md
 [license-badge]: https://img.shields.io/badge/Licencia-GPLv3+-green.svg "Leer la licencia"

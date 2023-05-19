@@ -25,10 +25,10 @@ set -e
 # ##############################################################################
 
 # Colores.
-RESET="\e[0m"
-YELLOW="\e[33m"
-RED="\e[31m"
-GREEN="\e[32m"
+RESET="\033[0m"
+YELLOW="\033[0;33m"
+RED="\033[0;31m"
+GREEN="\033[0;32m"
 
 # Script actual.
 SELF=$(basename "${0}")
@@ -36,6 +36,10 @@ SELF=$(basename "${0}")
 # Rutas a los diferentes componentes / directorios.
 DRUSH_DIR="vendor/bin/drush"
 DRUSH="php -d memory_limit=-1 ./vendor/bin/drush"
+
+# Variables para controlar multi-site.
+SITES_COUNT=0
+MULTI_SITE=0
 
 # Variable para almacenar la acción realizada.
 ACTION=''
@@ -94,18 +98,126 @@ function check_requirements() {
   fi
 }
 
-# Lee archivo de configuración.
-function load_env() {
-  ENV_FILE=.env
-  if [ ! -f "${ENV_FILE}" ]; then
+# Comprueba si es un multi-site.
+function check_multisite() {
+  SITES=$(find ${WEB_ROOT}/sites -mindepth 1 -maxdepth 1 -type d | sort)
+  i=0
+  for SITE_ID in $SITES; do
+    SITE_ID=$(basename "${SITE_ID}")
+    if [ "${SITE_ID}" != "default" ] && [ -f "${SITES_PATH}/${SITE_ID}/settings.php" ]; then
+      SITES[i]="${SITE_ID}";
+      i=$((i+1))
+    fi
+  done
+  SITES_COUNT=$((i-1))
+
+  if [ $SITES_COUNT -gt 0 ]; then
+    MULTI_SITE=1
+  fi
+}
+
+# Exportación simple de traducciones.
+function exportacion_simple() {
+  # Obtengo los idiomas instalados.
+  CURRENT_LANGCODES="$(./vendor/bin/drush language-info --field=language | cut -d'(' -f2 | cut -d')' -f1)"
+
+  for lc in $CURRENT_LANGCODES
+  do
+    case $lc in
+      'en')
+        ;;
+
+      *)
+        echo ' '
+        echo -e " - EXPORTANDO: ${GREEN}${lc}${RESET}..."
+        linea
+        ${DRUSH} locale:export --types=not-customized,customized "${lc}" > ./config/translations/all_site-"${lc}".po
+        ;;
+    esac
+  done
+}
+
+# Exportación multisite de traducciones.
+function exportacion_multisite() {
+  for i in $(seq 0 $SITES_COUNT); do
+    SITE_ID="${SITES[$i]}"
+    SITE_PATH="./config/translations/${SITE_ID}"
+
     clear
     linea
-    echo -e " ${RED}No existe el archivo de variables de entorno (.env).${RESET}"
+    echo -e "${GREEN} Procesando ${SITE_ID}...${RESET}"
     linea
-    exit 1
-  else
-    source "$(echo ${ENV_FILE})"
-  fi
+
+    # Obtengo los idiomas instalados.
+    CURRENT_LANGCODES="$(${DRUSH} -l ${SITE_ID} language-info --field=language | cut -d'(' -f2 | cut -d')' -f1)"
+
+    for lc in $CURRENT_LANGCODES
+    do
+      case $lc in
+        'en')
+          ;;
+
+        *)
+          echo ' '
+          echo -e " - EXPORTANDO: ${GREEN}${lc}${RESET}..."
+          linea
+          ${DRUSH} -l "${SITE_ID}" locale:export --types=not-customized,customized "${lc}" > "${SITE_PATH}"/all_site-"${lc}".po
+          ;;
+      esac
+    done
+  done
+}
+
+# Importación simple de traducciones.
+function importacion_simple() {
+  # Obtengo los idiomas instalados.
+  CURRENT_LANGCODES="$(./vendor/bin/drush language-info --field=language | cut -d'(' -f2 | cut -d')' -f1)"
+
+  for lc in $CURRENT_LANGCODES
+  do
+    case $lc in
+      'en')
+        ;;
+
+      *)
+        echo ' '
+        echo -e " - IMPORTANDO: ${GREEN}${lc}${RESET}..."
+        linea
+        ${DRUSH} locale:import --override=all --type=customized,not-customized "${lc}" ../config/translations/all_site-"${lc}".po
+        ;;
+    esac
+  done
+}
+
+# Importación multisite de traducciones.
+function importacion_multisite() {
+  for i in $(seq 0 $SITES_COUNT); do
+    SITE_ID="${SITES[$i]}"
+    SITE_PATH="./config/translations/${SITE_ID}"
+
+    clear
+    linea
+    echo -e "${GREEN} Procesando ${SITE_ID}...${RESET}"
+    linea
+
+    # Obtengo los idiomas instalados.
+    CURRENT_LANGCODES="$(${DRUSH} -l ${SITE_ID} language-info --field=language | cut -d'(' -f2 | cut -d')' -f1)"
+
+    for lc in $CURRENT_LANGCODES
+    do
+      case $lc in
+        'en')
+          ;;
+
+        *)
+          echo ' '
+          echo -e " - IMPORTANDO: ${GREEN}${lc}${RESET}..."
+          linea
+          ${DRUSH} -l "${SITE_ID}" locale:import --types=not-customized,customized "${lc}" > "${SITE_PATH}"/all_site-"${lc}".po
+          ;;
+      esac
+    done
+  done
 }
 
 
@@ -126,8 +238,8 @@ check_drupal
 # Verifico instalación de Drush.
 check_requirements
 
-# Compruebo que exista el archivo de variables de entorno.
-load_env
+# Comprueba si es un multisite.
+check_multisite
 
 
 # ##############################################################################
@@ -135,9 +247,6 @@ load_env
 # ##############################################################################
 
 clear
-
-# Obtengo los idiomas instalados.
-CURRENT_LANGCODES="$(./vendor/bin/drush language-info --field=language | cut -d'(' -f2 | cut -d')' -f1)"
 
 if [ "$1" == "ex" ]; then
   ACTION='Exportación'
@@ -147,20 +256,11 @@ if [ "$1" == "ex" ]; then
   linea
   echo " "
 
-  for lc in $CURRENT_LANGCODES
-  do
-    case $lc in
-      'en')
-        ;;
-
-      *)
-        echo ' '
-        echo -e " - EXPORTANDO: ${GREEN}${lc}${RESET}..."
-        linea
-        ${DRUSH} locale:export --types=not-customized,customized "${lc}" > ./config/translations/all_site-"${lc}".po
-        ;;
-    esac
-  done
+  if [ $MULTI_SITE -gt 0 ]; then
+    exportacion_multisite
+  else
+    exportacion_simple
+  fi
 
 elif [ "$1" == "im" ]; then
   ACTION='Importación'
@@ -173,20 +273,11 @@ elif [ "$1" == "im" ]; then
   # Pongo el sitio en modo mantenimiento.
   ${DRUSH} sset system.maintenance_mode TRUE
 
-  for lc in $CURRENT_LANGCODES
-  do
-    case $lc in
-      'en')
-        ;;
-
-      *)
-        echo ' '
-        echo -e " - IMPORTANDO: ${GREEN}${lc}${RESET}..."
-        linea
-        ${DRUSH} locale:import --override=all --type=customized,not-customized "${lc}" ../config/translations/all_site-"${lc}".po
-        ;;
-    esac
-  done
+  if [ $MULTI_SITE -gt 0 ]; then
+    importacion_multisite
+  else
+    importacion_simple
+  fi
 
   # Limpio caché y activo de nuevo el sitio.
   ${DRUSH} cr

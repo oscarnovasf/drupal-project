@@ -6,6 +6,50 @@ Todos los cambios notables de este proyecto se documentarán en este archivo.
   > Ver [TODO.md](TODO.md)
 
 ---
+* ## [v3.0.0] - 2023-05-19
+  > Nuevas funcionalidades.
+
+  * #### Añadido:
+    - Módulo para optimización de imágenes.
+    - Módulo de desarrollo twig_vardumper.
+    - Módulo coffee.
+    - Módulo default_content_deploy; incluye modificaciones en script de deploy
+      para que pregunte si se quieren importar las entidades y un nuevo script
+      para realizar operaciones de pre-commit.
+    - Módulo stage_file_proxy para descarga de files en entorno local desde
+      producción.
+    - Instalación de PV en el contenedor de la aplicación de Lando.
+    - Instalación de la extensión para Redis/KeyDB en el contenedor de la
+      aplicación de Lando.
+    - Limpieza de CSS y JS al hacer un deploy.
+    - Añadidos varios comandos a Lando para mejorar las funcionalidades.
+    - Módulo de PHP PHPRedis en el contenedor principal.
+    - Script para compartir el proyecto vía ngrok.
+    - Configuración para excluir módulos de desarrollo de manera más óptima.
+    - Uso de hooks en lando.
+    - Requerimiento de extensiones PHP IgBinary y APCU para mejorar el
+      rendimiento de Drupal.
+
+  * #### Cambios:
+    - Actualización a **Drupal 10**.
+    - Ajuste del script `db.sh` para que trabaje con multi-sites.
+    - Ajuste del script `deploy.sh` para que trabaje con multi-sites.
+    - Ajuste del script `trans.sh` para que trabaje con multi-sites.
+    - Por defecto se ha puesto a lando que use mariadb y php 8.2. La elección de
+      mariadb se debe a que se producen algunos errores de despliegue en
+      entornos Linux.
+    - Reducción al mínimo posible de los módulos instalados en Drupal por
+      defecto (siempre bajo mi propio punto de vista y necesidades).
+    - Modificación del `default.settings.php` para dar soporte a las nuevas
+      variables de entorno relacionadas con Redis/KeyDB.
+    - Renombrado de la carpeta de las utilidades de Lando: utils => .lando.
+    - Mejora de la documentación en el README.md.
+
+  * #### Eliminado:
+    - Se ha descartado el uso de `drupal-quality-checker` por incompatibilidades
+      con PHP ^8.0
+
+---
 * ## [v2.0.1] - 2022-11-30
   > Nuevas funcionalidades.
 

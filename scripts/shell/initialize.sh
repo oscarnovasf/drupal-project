@@ -21,10 +21,10 @@ set -e
 # ##############################################################################
 
 # Colores.
-RESET="\e[0m"
-YELLOW="\e[33m"
-RED="\e[31m"
-GREEN="\e[32m"
+RESET="\033[0m"
+YELLOW="\033[0;33m"
+RED="\033[0;31m"
+GREEN="\033[0;32m"
 
 # Rutas de los archivos.
 CONTRIB_MODULES_PATH="modules/contrib"
@@ -96,6 +96,10 @@ clear
 linea
 echo -e " ${YELLOW}Iniciando el borrado de archivos.${RESET}"
 linea
+
+# Ajusto permisos para que no falle la nueva instalación.
+chmod 777 ${WEB_ROOT}/sites
+chmod 777 ${WEB_ROOT}/sites/default
 
 # Elimino módulos contrib.
 if [ -d "${WEB_ROOT}/${CONTRIB_MODULES_PATH}" ]; then

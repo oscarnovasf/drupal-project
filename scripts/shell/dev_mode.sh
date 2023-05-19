@@ -26,10 +26,10 @@ start=$(date +%s)
 # ##############################################################################
 
 # Colores.
-RESET="\e[0m"
-YELLOW="\e[33m"
-RED="\e[31m"
-GREEN="\e[32m"
+RESET="\033[0m"
+YELLOW="\033[0;33m"
+RED="\033[0;31m"
+GREEN="\033[0;32m"
 
 # Cargo archivo con las variables de dependencias.
 source "$(dirname $0)"/.variables
@@ -96,6 +96,7 @@ function check_requirements() {
     clear
     linea
     echo -e " ${RED}No se ha encontrado la herramienta JQ.${RESET}"
+    echo -e " ${RED}Visita https://stedolan.github.io/jq/download e instala la versión necesaria.${RESET}"
     linea
     exit 2
   fi
@@ -181,14 +182,6 @@ if [ "$DEV_MODE" == "ON" ]; then
     cat composer.custom.json | jq --arg e "require-dev" --arg data1 "$DATA1" --arg data2 "$DATA2" '.[$e] += { ($data1) : ($data2) }' > composer.custom.json2
     mv -f composer.custom.json{2,}
   done
-
-  if [ "$USE_QUALITY_CHECKER" == "y" ]; then
-    IFS=': ' read -r -a array <<< "${QUALITY_CHECKER}"
-    DATA1="${array[0]}"
-    DATA2="${array[1]}"
-    cat composer.custom.json | jq --arg e "require-dev" --arg data1 "$DATA1" --arg data2 "$DATA2" '.[$e] += { ($data1) : ($data2) }'> composer.custom.json2
-    mv -f composer.custom.json{2,}
-  fi
 
   # Realizo la instalación.
   composer update

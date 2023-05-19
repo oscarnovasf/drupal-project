@@ -18,7 +18,7 @@ class ScriptHandler {
    * @param Composer\Script\Event $event
    *   Eventos de Composer.
    */
-  public static function createRequiredFiles(Event $event) {
+  public static function createRequiredFiles(Event $event): void {
     $fs = new Filesystem();
     $drupalFinder = new DrupalFinder();
     $drupalFinder->locateRoot(getcwd());
@@ -28,12 +28,14 @@ class ScriptHandler {
     $dirs = [
       'config/db',
       'config/sync',
+      'config/sync/content',
       'config/sync/global',
       'config/sync/dev',
       'config/sync/loc',
       'config/sync/pro',
       'config/sync/stg',
       'config/translations',
+      'docs/simpletest/browser_output',
       'private_files',
       'tmp',
       'web/libraries',
@@ -41,9 +43,16 @@ class ScriptHandler {
       'web/sites/default/files',
     ];
 
+    // Ajusto algunos permisos para que no falle el script.
+    $fs->chmod('web/sites', 0777);
+    $fs->chmod('web/sites/default', 0777);
+
     foreach ($dirs as $dir) {
       if (!$fs->exists($dir)) {
-        if ($dir == 'web/sites/default/files' || $dir == 'private_files' || $dir == 'tmp') {
+        if ($dir == 'web/sites/default/files' ||
+            $dir == 'private_files' ||
+            $dir == 'tmp' ||
+            $dir == 'docs/simpletest/browser_output') {
           $fs->mkdir($dir, 0777);
           $event->getIO()->write('Creado el directorio "' . $dir . ' (chmod 0777)');
         }
@@ -75,7 +84,7 @@ class ScriptHandler {
    * @SuppressWarnings(PHPMD)
    * @see https://github.com/composer/composer/pull/5035
    */
-  public static function checkComposerVersion(Event $event) {
+  public static function checkComposerVersion(Event $event): void {
     $composer = $event->getComposer();
     $io = $event->getIO();
 
@@ -104,7 +113,7 @@ class ScriptHandler {
    * @param Composer\Script\Event $event
    *   Eventos de Composer.
    */
-  public static function removeGitDirectories(Event $event) {
+  public static function removeGitDirectories(Event $event): void {
     $drupalFinder = new DrupalFinder();
     $drupalFinder->locateRoot(getcwd());
     $drupalRoot = $drupalFinder->getDrupalRoot();
@@ -119,7 +128,7 @@ class ScriptHandler {
   /**
    * Remove unnecessary files.
    */
-  public static function removeUnnecesaryFiles(Event $event) {
+  public static function removeUnnecesaryFiles(Event $event): void {
     $fs = new Filesystem();
     $drupalFinder = new DrupalFinder();
     $drupalFinder->locateRoot(getcwd());
@@ -134,6 +143,8 @@ class ScriptHandler {
       $drupalRoot . '/modules/README.txt',
       $drupalRoot . '/profiles/README.txt',
       $drupalRoot . '/sites/example.sites.php',
+      $drupalRoot . '/sites/example.settings.local.php',
+      $drupalRoot . '/sites/development.services.yml',
       $drupalRoot . '/sites/README.txt',
       $drupalRoot . '/themes/README.txt',
       $drupalRoot . '/robots.txt',
@@ -152,7 +163,7 @@ class ScriptHandler {
    * @param Composer\Script\Event $event
    *   Eventos de Composer.
    */
-  public static function setScriptsPermissions(Event $event) {
+  public static function setScriptsPermissions(Event $event): void {
     $fs = new Filesystem();
 
     $files_755 = [
@@ -162,6 +173,8 @@ class ScriptHandler {
       'scripts/shell/initialize.sh',
       'scripts/shell/install.sh',
       'scripts/shell/phpcs.sh',
+      'scripts/shell/pre_commit.sh',
+      'scripts/shell/share.sh',
       'scripts/shell/trans.sh',
     ];
 
@@ -179,7 +192,7 @@ class ScriptHandler {
    * @param Composer\Script\Event $event
    *   Eventos de Composer.
    */
-  public static function setDrupalPermissions(Event $event) {
+  public static function setDrupalPermissions(Event $event): void {
     $fs = new Filesystem();
     $drupalFinder = new DrupalFinder();
     $drupalFinder->locateRoot(getcwd());
@@ -204,7 +217,7 @@ class ScriptHandler {
   /**
    * Pre Drupal scaffold actions.
    */
-  public static function preDrupalScaffold() {
+  public static function preDrupalScaffold(): void {
     $fs = new Filesystem();
     $drupalFinder = new DrupalFinder();
     $drupalFinder->locateRoot(getcwd());
@@ -213,6 +226,32 @@ class ScriptHandler {
     if ($fs->exists($drupalRoot . '/sites/default/settings.php')) {
       $fs->chmod($drupalRoot . '/sites/default', 0777);
       $fs->chmod($drupalRoot . '/sites/default/settings.php', 0777);
+    }
+  }
+
+  /**
+   * Check prohibited modules.
+   */
+  public static function checkProhibitedModules(Event $event): void {
+    $fs = new Filesystem();
+    $drupalFinder = new DrupalFinder();
+    $drupalFinder->locateRoot(getcwd());
+    $drupalRoot = $drupalFinder->getDrupalRoot();
+
+    if (empty($_SERVER['COMPOSER_DEV_MODE'])) {
+      $files = [
+        $drupalRoot . '/modules/contrib/backup_migrate',
+        $drupalRoot . '/modules/contrib/devel',
+        $drupalRoot . '/modules/contrib/potx',
+      ];
+      foreach ($files as $file) {
+        if ($fs->exists($file)) {
+          $event
+            ->getIO()
+            ->writeError('<error>ERROR: El módulo "' . $file . '" no puede instalarse en producción.</error>');
+          exit(1);
+        }
+      }
     }
   }
 

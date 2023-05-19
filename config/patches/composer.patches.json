@@ -1,13 +1,8 @@
 {
     "patches": {
 
-        "drupal/core": {
-            "Fixed toolbar on mobile": "https://www.drupal.org/files/issues/2020-06-09/core-toolbar-mobile-2516938-73.patch"
-        },
-
-        "drupal/redirect_after_login": {
-            "Error de login en Drupal ^9.2": "https://www.drupal.org/files/issues/2021-06-20/3214949.patch",
-            "Deprecated call from preg_match in php 8.1": "https://www.drupal.org/files/issues/2022-08-23/redirect_after_login-3291909-7.patch"
+        "drupal/redis": {
+            "Default lifetime for permanent TTL": "https://www.drupal.org/files/issues/2020-09-23/redis-default_permanent_ttl-2944938.patch"
         }
     }
 }

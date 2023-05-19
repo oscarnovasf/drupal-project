@@ -8,6 +8,4 @@ debug_mail_directory: 'temporary://devel-mails'
 devel_dumper: kint_extended
 debug_logfile: 'temporary://drupal_debug.txt'
 debug_pre: true
-_core:
-  default_config_hash: Aqx6J0yYT6mVqT0fbjeP4JkoL-700nmudVF5d6Pq2Yo
 langcode: es

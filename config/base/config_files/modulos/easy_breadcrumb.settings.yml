@@ -37,7 +37,5 @@ limit_segment_display: false
 truncator_mode: false
 truncator_length: '100'
 truncator_dots: true
-_core:
-  default_config_hash: 8EmQa_u-FWYuP_YcNy-Tp3PuLk583dbhIB8xbNQ58TE
 langcode: es
 segment_display_limit: ''

@@ -23,14 +23,22 @@ set -e
 # ##############################################################################
 
 # Colores.
-RESET="\e[0m"
-YELLOW="\e[33m"
-RED="\e[31m"
-GREEN="\e[32m"
+RESET="\033[0m"
+YELLOW="\033[0;33m"
+RED="\033[0;31m"
+GREEN="\033[0;32m"
 
 # Rutas a los diferentes componentes / directorios.
 DRUSH_DIR="vendor/bin/drush"
 DRUSH="php -d memory_limit=-1 ./vendor/bin/drush"
+WEB_ROOT="$(pwd)"
+
+# Variables para controlar multi-site.
+SITES_COUNT=0
+MULTI_SITE=0
+
+# Para verificar si se ha realizado el deploy.
+RUN_DEPLOY=0
 
 
 # ##############################################################################
@@ -58,9 +66,8 @@ function load_env() {
 
 # Verifica que existe realmente una configuración de Drupal.
 function check_drupal() {
-  WEB_ROOT="$(pwd)"
   if [ -f web/sites/default/default.settings.php ]; then
-    WEB_ROOT="web"
+    WEB_ROOT="./web"
   elif [ -f sites/default/default.settings.php ]; then
     WEB_ROOT="."
   else
@@ -86,6 +93,52 @@ function check_requirements() {
   fi
 }
 
+# Comprueba si es un multi-site.
+function check_multisite() {
+  SITES=$(find ${WEB_ROOT}/sites -mindepth 1 -maxdepth 1 -type d | sort)
+  i=0
+  for SITE_ID in $SITES; do
+    SITE_ID=$(basename "${SITE_ID}")
+    if [ "${SITE_ID}" != "default" ] && [ -f "${SITES_PATH}/${SITE_ID}/settings.php" ]; then
+      SITES[i]="${SITE_ID}";
+      i=$((i+1))
+    fi
+  done
+  SITES_COUNT=$((i-1))
+
+  if [ $SITES_COUNT -gt 0 ]; then
+    MULTI_SITE=1
+  fi
+}
+
+# Limpieza de archivos CSS y JS.
+function limpiar_css_js {
+  clear
+  linea
+  echo -e " ${YELLOW}Limpiando CSS y JS...${RESET}"
+  linea
+  echo " "
+
+  if [ $MULTI_SITE -gt 0 ]; then
+    # Limpieza multisite.
+    for i in $(seq 0 $SITES_COUNT); do
+      SITE_ID="${SITES[$i]}"
+
+      echo " "
+      linea
+      echo -e "${GREEN} Procesando ${SITE_ID}...${RESET}"
+      linea
+
+      rm -rf ${WEB_ROOT}/sites/${SITE_ID}/files/css/*
+      rm -rf ${WEB_ROOT}/sites/${SITE_ID}/files/js/*
+    done
+  else
+    # Limpieza simple.
+    rm -rf ${WEB_ROOT}/sites/default/files/css/*
+    rm -rf ${WEB_ROOT}/sites/default/files/js/*
+  fi
+}
+
 
 # ##############################################################################
 # COMPROBACIONES PREVIAS.
@@ -100,6 +153,9 @@ load_env
 # Verifico instalación de Drush.
 check_requirements
 
+# Comprueba si es un multisite.
+check_multisite
+
 # Exportación de configuraciones para composer.
 export COMPOSER_ALLOW_SUPERUSER=1;
 export COMPOSER_MEMORY_LIMIT=-1;
@@ -109,6 +165,146 @@ export COMPOSER_PROCESS_TIMEOUT=600
 if [ "$SCRIPT_SERVER_HAS_PLESK" == "y" ]; then
   export PATH=/opt/plesk/php/${SCRIPT_SERVER_PLESK_PHP_VERSION}/bin:$PATH;
 fi
+
+
+################################################################################
+# FUNCIONES.
+################################################################################
+
+# Cambia los permisos de los archivos.
+function asign_perms() {
+  clear
+  linea
+  echo -e " ${YELLOW}Asignando permisos a ficheros...${RESET}"
+  linea
+
+  # Asigno grupo y propietario a todos los ficheros.
+  find . \
+    -path ./.git -prune \
+    -o -exec chown "$USER_OWNER":"$USER_GROUP" {} +
+
+  # Me aseguro que puedo ejecutar todos los scripts.
+  find ./scripts/shell/ -type f -iname "*.sh" -exec chmod +x {} \;
+}
+
+# Importa el contenido bajo demanda.
+function import_content() {
+  clear
+  echo ''
+  files=(./config/sync/content/**/*.json)
+  if [ ${#files[@]} -gt 0 ]; then
+    read -r -p "¿Deseas realizar la importación de entidades? [n]: " IMPORTAR_CONTENIDO
+    IMPORTAR_CONTENIDO=${IMPORTAR_CONTENIDO:-n}
+
+    if [ "$IMPORTAR_CONTENIDO" == "y" ]; then
+      linea
+      echo -e " ${YELLOW}Realizando importación de entidades...${RESET}"
+      linea
+      echo " "
+
+      # Ejecuto importación simple o de multi-site según corresponda.
+      if [ $MULTI_SITE -gt 0 ]; then
+        # Importación multisite.
+        for i in $(seq 0 $SITES_COUNT); do
+          SITE_ID="${SITES[$i]}"
+
+          echo " "
+          linea
+          echo -e "${GREEN} Procesando ${SITE_ID}...${RESET}"
+          linea
+
+          ${DRUSH} -l "${SITE_ID}" dcdi --force-override -y
+        done
+      else
+        # Importación simple.
+        ${DRUSH} dcdi --force-override -y
+      fi
+    fi
+  fi
+}
+
+# Importa la base de datos.
+function import_ddbb {
+  echo ''
+  read -r -p "¿Deseas realizar la importación de la base de datos? [n]: " IMPORTAR_BD
+  IMPORTAR_BD=${IMPORTAR_BD:-n}
+
+  if [ "$IMPORTAR_BD" == "y" ]; then
+    bash ./scripts/shell/db.sh im
+
+    # Pongo el sitio en modo mantenimiento otra vez.
+    ${DRUSH} sset system.maintenance_mode TRUE
+
+    # Realizo actualización por si acaso..
+    clear
+    linea
+    echo -e " ${YELLOW}Operaciones adicionales...${RESET}"
+    linea
+    ${DRUSH} updatedb -y
+
+    # Borro la caché de la base de datos.
+    echo ''
+    ${DRUSH} cache:rebuild
+
+  else
+    # Realizo actualización previa a la importación de configuraciones.
+    clear
+    linea
+    echo -e " ${YELLOW}Operaciones adicionales...${RESET}"
+    linea
+    ${DRUSH} updatedb --no-cache-clear
+
+    # Borro la caché de la base de datos.
+    echo ''
+    ${DRUSH} cache:rebuild
+
+    # Realizo importación de configuraciones.
+    echo ''
+    ${DRUSH} config:import -y
+
+    # Borro la caché de la base de datos.
+    echo ''
+    ${DRUSH} cache:rebuild
+
+    # Realizo actualización posterior a la importación de configuraciones.
+    echo ''
+    ${DRUSH} updatedb -y
+
+    # Ejecuto el Cron
+    echo ''
+    ${DRUSH} cron
+
+    # Borro la caché de la base de datos.
+    echo ''
+    ${DRUSH} cache:rebuild
+
+    # Al no importar la base de datos importo las traducciones.
+    echo ''
+    ${DRUSH} locale-check
+
+    echo ''
+    ${DRUSH} locale-update
+
+    # Borro la caché de la base de datos.
+    echo ''
+    ${DRUSH} cache:rebuild
+  fi
+}
+
+# Importa las traducciones bajo demanda.
+function import_translations() {
+  clear
+  echo ''
+  read -r -p "¿Deseas realizar la importación de las traducciones? [n]: " IMPORTAR_TRANS
+  IMPORTAR_TRANS=${IMPORTAR_TRANS:-n}
+
+  if [ "$IMPORTAR_TRANS" == "y" ]; then
+    bash ./scripts/shell/trans.sh im
+
+    # Pongo el sitio en modo mantenimiento otra vez.
+    ${DRUSH} sset system.maintenance_mode TRUE
+  fi
+}
 
 
 # ##############################################################################
@@ -126,10 +322,13 @@ read -r -p "¿Deseas realizar el deploy sobre la rama ${RAMA_ACTUAL}? [y]: " CON
 CONTINUAR=${CONTINUAR:-y}
 
 if [ "$CONTINUAR" == "y" ] || [ "$CONTINUAR" == "Y" ]; then
+  # Indico que voy a hacer el deploy.
+  RUN_DEPLOY=1
+
   # Pongo el drupal en modo mantenimiento.
   ${DRUSH} sset system.maintenance_mode TRUE
 
-  # Descargo última versión.clear
+  # Descargo última versión.
   linea
   echo -e " ${YELLOW}Descargando proyecto...${RESET}"
   linea
@@ -143,125 +342,19 @@ if [ "$CONTINUAR" == "y" ] || [ "$CONTINUAR" == "Y" ]; then
   composer install
 
   # Actualizo los permisos de los ficheros.
-  clear
-  linea
-  echo -e " ${YELLOW}Asignando permisos a ficheros...${RESET}"
-  linea
-  find . \
-    -path ./.git -prune \
-    -o -exec chown "$USER_OWNER":"$USER_GROUP" {} +
+  asign_perms
 
-  # Compruebo que exista un volcado para importar.
-  if [ -f ./config/db/data.sql ]; then
-    # Pregunto si se quiere importar la base de datos.
-    echo ''
-    read -r -p "¿Deseas realizar la importación de la base de datos? [n]: " IMPORTAR_BD
-    IMPORTAR_BD=${IMPORTAR_BD:-n}
+  # Limpieza de archivos CSS y JS.
+  limpiar_css_js
 
-    if [ "$IMPORTAR_BD" == "y" ]; then
-      # Borro datos previos.
-      echo ''
-      echo -e " ${YELLOW}Borrando datos previos...${RESET}"
-      linea
-      ${DRUSH} sql-drop
+  # Pregunto si se quiere importar la base de datos.
+  import_ddbb
 
-      # Realizo la importación.
-      echo ''
-      echo -e " ${YELLOW}Importando datos...${RESET}"
-      linea
-      ${DRUSH} sql-cli < ./config/db/data.sql
-
-      # Pongo el drupal en modo mantenimiento.
-      ${DRUSH} sset system.maintenance_mode TRUE
-
-      # Realizo actualización por si acaso..
-      clear
-      linea
-      echo -e " ${YELLOW}Operaciones adicionales...${RESET}"
-      linea
-      ${DRUSH} updatedb -y
-
-      # Borro la caché de la base de datos.
-      echo ''
-      ${DRUSH} cache:rebuild
-    else
-      # Realizo actualización previa a la importación de configuraciones.
-      clear
-      linea
-      echo -e " ${YELLOW}Operaciones adicionales...${RESET}"
-      linea
-      ${DRUSH} updatedb --no-cache-clear
-
-      # Borro la caché de la base de datos.
-      echo ''
-      ${DRUSH} cache:rebuild
-
-      # Realizo importación de configuraciones.
-      echo ''
-      ${DRUSH} config:import -y
-
-      # Borro la caché de la base de datos.
-      echo ''
-      ${DRUSH} cache:rebuild
-
-      # Realizo actualización posterior a la importación de configuraciones.
-      echo ''
-      ${DRUSH} updatedb -y
-
-      # Ejecuto el Cron
-      echo ''
-      ${DRUSH} cron
-
-      # Borro la caché de la base de datos.
-      echo ''
-      ${DRUSH} cache:rebuild
-
-      # Al no importar la base de datos importo las traducciones.
-      echo ''
-      ${DRUSH} locale-check
-
-      echo ''
-      ${DRUSH} locale-update
-
-      # Borro la caché de la base de datos.
-      echo ''
-      ${DRUSH} cache:rebuild
-    fi
-  fi
+  # Pregunto si se quiere importar el contenido.
+  import_content
 
   # Pregunto si se quieren importar las traducciones.
-  clear
-  echo ''
-  read -r -p "¿Deseas realizar la importación de las traducciones? [n]: " IMPORTAR_TRANS
-  IMPORTAR_TRANS=${IMPORTAR_TRANS:-n}
-
-  if [ "$IMPORTAR_TRANS" == "y" ]; then
-    linea
-    echo -e " ${YELLOW}Realizando importación de traducciones...${RESET}"
-    linea
-    echo " "
-
-    # Obtengo los idiomas instalados.
-    CURRENT_LANGCODES="$(./vendor/bin/drush language-info --field=language | cut -d'(' -f2 | cut -d')' -f1)"
-
-    for lc in $CURRENT_LANGCODES
-    do
-      case $lc in
-        'en')
-          ;;
-
-        *)
-          echo ' '
-          echo -e " - IMPORTANDO: ${GREEN}${lc}${RESET}..."
-          linea
-          ${DRUSH} locale:import --override=all --type=customized,not-customized "${lc}" ../config/translations/all_site-"${lc}".po
-          ;;
-      esac
-    done
-
-    # Limpio caché y activo de nuevo el sitio.
-    ${DRUSH} cache:rebuild
-  fi
+  import_translations
 
   # Desactivo modo de mantenimiento.
   ${DRUSH} sset system.maintenance_mode FALSE
@@ -277,9 +370,11 @@ end=$(date +%s)
 runtime=$((end-start))
 
 clear
-linea
-echo -e " ${GREEN}Deploy realizado correctamente.${RESET}"
-linea
-echo " "
-echo " Tiempo de ejecución: ${runtime}s"
-echo " "
+if [ $RUN_DEPLOY -gt 0 ]; then
+  linea
+  echo -e " ${GREEN}Deploy realizado correctamente.${RESET}"
+  linea
+  echo " "
+  echo " Tiempo de ejecución: ${runtime}s"
+  echo " "
+fi

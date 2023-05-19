@@ -9,13 +9,11 @@ stackable: false
 storage: folder
 folder: ../config/sync/loc
 module:
+  cdn: 0
+  cdn_ui: 0
   devel: 0
-  devel_generate: 0
   devel_kint_extras: 0
   devel_php: 0
-  module_missing_message_fixer: 0
-  potx: 0
-  smtp: 0
 theme: {  }
 complete_list: {  }
 partial_list: {  }

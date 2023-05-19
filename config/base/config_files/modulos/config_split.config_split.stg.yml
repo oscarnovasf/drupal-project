@@ -9,7 +9,8 @@ stackable: false
 storage: folder
 folder: ../config/sync/stg
 module:
-  smtp: 0
+  cdn: 0
+  cdn_ui: 0
 theme: {  }
 complete_list: {  }
 partial_list: {  }
