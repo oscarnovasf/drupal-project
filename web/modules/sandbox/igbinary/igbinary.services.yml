@@ -1,0 +1,7 @@
+services:
+  serialization.igbinary:
+    class: Drupal\igbinary\Component\Serialization\IgbinarySerialize
+  serialization.igbinary_gz:
+    class: Drupal\igbinary\Component\Serialization\IgbinaryCompressSerialize
+  serialization.phpserialize_gz:
+    class: Drupal\igbinary\Component\Serialization\PhpCompressSerialize

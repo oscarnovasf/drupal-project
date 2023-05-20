@@ -179,7 +179,7 @@ tooling:
   # lando xdebug [on|off]
   xdebug:
     service: appserver
-    description: Activar/Desactivar xdebug en apache.
+    description: Activar/Desactivar xdebug.
     cmd:
       - ./.lando/scripts/xdebug.sh
     user: root

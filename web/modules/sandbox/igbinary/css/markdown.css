@@ -1,0 +1,9 @@
+/* *****************************************************************************
+ * Maquetación especial para los archivos .md.
+ ******************************************************************************/
+
+.readme-content hr,
+.changelog-content hr,
+.license-content hr {margin-bottom: 40px; }
+
+.readme-content hr:nth-last-child(3) {margin-bottom: 0px; margin-top: 50px; }

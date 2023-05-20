@@ -1,0 +1,18 @@
+# Datos del módulo
+name: 'IgBinary serialization service'
+description: 'Este módulo ofrece un servicio de serialización basado en igbinary.'
+
+# Datos de la versión
+package: 'Cache'
+type: module
+version: '1.0.0'
+
+# Tema
+base theme: false
+
+# Dependencias
+dependencies:
+  - drupal:redis
+
+# Requisitos
+core_version_requirement: ^10

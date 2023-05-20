@@ -2,8 +2,10 @@
 
 // @codingStandardsIgnoreFile
 
+use Drupal\Component\Assertion\Handle;
+
 assert_options(ASSERT_ACTIVE, TRUE);
-\Drupal\Component\Assertion\Handle::register();
+Handle::register();
 
 $settings['container_yamls'][] = DRUPAL_ROOT . '/sites/develop.services.yml';
 $settings['cache']['bins']['render'] = 'cache.backend.null';

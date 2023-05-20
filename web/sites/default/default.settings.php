@@ -908,3 +908,10 @@ switch ($_ENV['DRUPAL_ENV']) {
 if (file_exists($app_root . '/' . $site_path . '/settings.local.php')) {
   include $app_root . '/' . $site_path . '/settings.local.php';
 }
+
+/**
+ * Incluye en este archivo tus configuraciones personalizadas.
+ */
+if (file_exists($app_root . '/' . $site_path . '/settings.custom.php')) {
+  include $app_root . '/' . $site_path . '/settings.custom.php';
+}

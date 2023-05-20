@@ -165,7 +165,7 @@ Al instalar con este `composer.json` se realizan las siguientes tareas:
     > fuera de nuestra red.
 
     Este script hace uso de [ngrok](https://ngrok.com/) por lo que será necesario
-    crearse una cuenta y configurar el API Key en nuestro entorno local.  
+    crearse una cuenta y configurar el API Key en nuestro entorno local.
     Al ejecutarse se genera una url que podemos utilizar desde una máquina
     externa para conectarnos a nuestro sistema.
 
@@ -303,8 +303,8 @@ Al instalar con este `composer.json` se realizan las siguientes tareas:
 
 ---
 
-[version]: v3.0.0
-[version-badge]: https://img.shields.io/badge/Versión-3.0.0-blue.svg
+[version]: v3.0.1
+[version-badge]: https://img.shields.io/badge/Versión-3.0.1-blue.svg
 
 [license]: LICENSE.md
 [license-badge]: https://img.shields.io/badge/Licencia-GPLv3+-green.svg "Leer la licencia"

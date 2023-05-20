@@ -238,17 +238,6 @@ function run_composer() {
     done
   fi
 
-  # Añado custom theme:
-  if [ "$SCRIPT_INSTALL_THEME" == "y" ]; then
-    for i in "${CUSTOM_THEME[@]}"; do
-      IFS=': ' read -r -a array <<< "${i}"
-      DATA1="${array[0]}"
-      DATA2="${array[1]}"
-      cat composer.custom.json | jq --arg e "require" --arg data1 "$DATA1" --arg data2 "$DATA2" '.[$e] += { ($data1) : ($data2) }'> composer.custom.json2
-      mv -f composer.custom.json{2,}
-    done
-  fi
-
   # Realizo la instalación.
   composer install
 
@@ -417,116 +406,6 @@ function import_config() {
   ${DRUSH} config-import --partial --source="$(pwd)"/config/base/config_files/vistas/ -y
 }
 
-# Instala/activa la plantilla custom.
-function install_custom_theme() {
-  if [ "$SCRIPT_INSTALL_THEME" == "y" ]; then
-    clear
-    linea
-    echo -e " ${YELLOW}Generando plantilla \"custom\"...${RESET}"
-    linea
-
-    CURRENT_DIR=$(pwd)
-
-    # Copio y renombro los archivos.
-    cp -r ./web/themes/contrib/bootstrap_sass ./web/themes/custom/"$SCRIPT_DRUPAL_CUSTOM_THEME_MACHINE_NAME"
-    cd ./web/themes/custom/"$SCRIPT_DRUPAL_CUSTOM_THEME_MACHINE_NAME" || exit
-    for file in *bootstrap_sass.*; do mv "$file" "${file//bootstrap_sass/$SCRIPT_DRUPAL_CUSTOM_THEME_MACHINE_NAME}"; done
-    for file in config/*/*bootstrap_sass.*; do mv "$file" "${file//bootstrap_sass/$SCRIPT_DRUPAL_CUSTOM_THEME_MACHINE_NAME}"; done
-
-    # Elimino la carpeta scripts.
-    rm -R scripts
-
-    # Cambio los nombre de los archivos.
-    grep -Rl bootstrap_sass .|xargs sed -i -e "s/bootstrap_sass/$SCRIPT_DRUPAL_CUSTOM_THEME_MACHINE_NAME/"
-    sed -i -e "s/SASS Bootstrap Starter Kit Subtheme/$SCRIPT_DRUPAL_CUSTOM_THEME_NAME/" "$SCRIPT_DRUPAL_CUSTOM_THEME_MACHINE_NAME".info.yml
-
-    # Cambiar/Modificar package.json y gulpfile.js antes de ejecutarlos.
-    mv gulpfile.js gulpfile_original.js
-    cp -r "${CURRENT_DIR}"/config/base/theme_files/gulpfile.js gulpfile.js
-
-    mv package.json package_original.json
-    cp -r "${CURRENT_DIR}"/config/base/theme_files/package.json package.json
-
-    clear
-    linea
-    echo -e " ${YELLOW}Copiando twigs por defecto...${RESET}"
-    linea
-
-    # Elimino las plantillas por defecto de la plantilla.
-    rm -rf ./templates/*.twig
-
-    # Copio plantillas por defecto dentro de subcarpetas o no.
-    if [ "$SCRIPT_USE_TWIG_THEME_STRUCTURED" == "y" ]; then
-      # Genero estructura básica de directorios de plantillas.
-      mkdir ./templates/block
-      mkdir ./templates/content
-      mkdir ./templates/field
-      mkdir ./templates/form
-      mkdir ./templates/layout
-      mkdir ./templates/modules
-      mkdir ./templates/navigation
-      mkdir ./templates/user
-      mkdir ./templates/views
-
-      # Copio las plantillas usadas por defecto.
-      cp -r "${CURRENT_DIR}"/config/base/theme_files/templates/block/* ./templates/block
-      cp -r "${CURRENT_DIR}"/config/base/theme_files/templates/content/* ./templates/content
-      cp -r "${CURRENT_DIR}"/config/base/theme_files/templates/field/* ./templates/field
-      cp -r "${CURRENT_DIR}"/config/base/theme_files/templates/layout/* ./templates/layout
-      cp -r "${CURRENT_DIR}"/config/base/theme_files/templates/modules/* ./templates/modules
-      cp -r "${CURRENT_DIR}"/config/base/theme_files/templates/views/* ./templates/views
-    else
-      # Copio las plantillas usadas por defecto.
-      cp -r "${CURRENT_DIR}"/config/base/theme_files/templates/block/* ./templates
-      cp -r "${CURRENT_DIR}"/config/base/theme_files/templates/content/* ./templates
-      cp -r "${CURRENT_DIR}"/config/base/theme_files/templates/field/* ./templates
-      cp -r "${CURRENT_DIR}"/config/base/theme_files/templates/layout/* ./templates
-      cp -r "${CURRENT_DIR}"/config/base/theme_files/templates/modules/* ./templates
-      cp -r "${CURRENT_DIR}"/config/base/theme_files/templates/views/* ./templates
-    fi
-
-    clear
-    linea
-    echo -e " ${YELLOW}Generando plantilla...${RESET}"
-    linea
-
-    echo ' '
-    npm install
-    gulp initial
-
-    # Vuelvo a la carpeta origen.
-    cd "${CURRENT_DIR}" || exit
-
-    clear
-    linea
-    echo -e " ${YELLOW}Activando plantilla...${RESET}"
-    linea
-
-    # Activo la plantilla.
-    ${DRUSH} theme:enable "${SCRIPT_DRUPAL_CUSTOM_THEME_MACHINE_NAME}" -y
-    ${DRUSH} config-set system.theme default "${SCRIPT_DRUPAL_CUSTOM_THEME_MACHINE_NAME}" -y
-
-    # Copio la configuración y le cambio el nombre al archivo para que coincida con la plantilla instalada.
-    mkdir "$(pwd)"/aux
-    cp -rf "$(pwd)"/config/base/config_files/plantilla/custom_theme.settings.yml "$(pwd)"/aux/"${SCRIPT_DRUPAL_CUSTOM_THEME_MACHINE_NAME}".settings.yml
-
-    # Realizo la importación.
-    ${DRUSH} config-import --partial --source="$(pwd)"/aux/ -y
-
-    # Elimino el .yml importado.
-    rm -rf "$(pwd)"/aux
-
-    clear
-    linea
-    echo -e " ${YELLOW}Ajustando bloques de la plantilla...${RESET}"
-    linea
-
-    # Elimino bloques no necesarios.
-    ${DRUSH} config-delete block.block."${SCRIPT_DRUPAL_CUSTOM_THEME_MACHINE_NAME}"_powered
-
-  fi
-}
-
 # Realiza un volcado de la base de datos.
 function dump_bbdd() {
   clear
@@ -646,9 +525,6 @@ else
 
   # Importo las configuraciones base.
   import_config
-
-  # Instalo/activo la plantilla custom.
-  install_custom_theme
 
   # Realizo backup de la BBDD antes de activar los módulos de desarrollo.
   dump_bbdd

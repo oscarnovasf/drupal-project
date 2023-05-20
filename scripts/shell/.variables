@@ -52,7 +52,6 @@ PROD_DRUSH_NAMES=("${PROD_DRUSH_NAMES[@]}" "blazy")
 PROD_DRUSH_NAMES=("${PROD_DRUSH_NAMES[@]}" "block_exclude_pages")
 PROD_DRUSH_NAMES=("${PROD_DRUSH_NAMES[@]}" "captcha")
 PROD_DRUSH_NAMES=("${PROD_DRUSH_NAMES[@]}" "cdn")
-PROD_DRUSH_NAMES=("${PROD_DRUSH_NAMES[@]}" "ckeditor_accordion")
 PROD_DRUSH_NAMES=("${PROD_DRUSH_NAMES[@]}" "config_filter")
 PROD_DRUSH_NAMES=("${PROD_DRUSH_NAMES[@]}" "config_ignore")
 PROD_DRUSH_NAMES=("${PROD_DRUSH_NAMES[@]}" "config_pages")
@@ -81,7 +80,6 @@ PROD_DRUSH_NAMES=("${PROD_DRUSH_NAMES[@]}" "module_filter")
 PROD_DRUSH_NAMES=("${PROD_DRUSH_NAMES[@]}" "pathauto")
 PROD_DRUSH_NAMES=("${PROD_DRUSH_NAMES[@]}" "paragraphs")
 PROD_DRUSH_NAMES=("${PROD_DRUSH_NAMES[@]}" "quicklink")
-PROD_DRUSH_NAMES=("${PROD_DRUSH_NAMES[@]}" "recaptcha")
 PROD_DRUSH_NAMES=("${PROD_DRUSH_NAMES[@]}" "redirect")
 PROD_DRUSH_NAMES=("${PROD_DRUSH_NAMES[@]}" "redis")
 PROD_DRUSH_NAMES=("${PROD_DRUSH_NAMES[@]}" "robotstxt")
@@ -96,7 +94,6 @@ PROD_DRUSH_NAMES=("${PROD_DRUSH_NAMES[@]}" "token_filter")
 PROD_DRUSH_NAMES=("${PROD_DRUSH_NAMES[@]}" "twig_tweak")
 PROD_DRUSH_NAMES=("${PROD_DRUSH_NAMES[@]}" "twig_field_value")
 PROD_DRUSH_NAMES=("${PROD_DRUSH_NAMES[@]}" "verf")
-PROD_DRUSH_NAMES=("${PROD_DRUSH_NAMES[@]}" "views_ajax_history")
 PROD_DRUSH_NAMES=("${PROD_DRUSH_NAMES[@]}" "views_bulk_operations")
 PROD_DRUSH_NAMES=("${PROD_DRUSH_NAMES[@]}" "views_data_export")
 PROD_DRUSH_NAMES=("${PROD_DRUSH_NAMES[@]}" "view_password")
@@ -104,17 +101,16 @@ PROD_DRUSH_NAMES=("${PROD_DRUSH_NAMES[@]}" "webform")
 PROD_DRUSH_NAMES=("${PROD_DRUSH_NAMES[@]}" "webform_ui")
 PROD_DRUSH_NAMES=("${PROD_DRUSH_NAMES[@]}" "webform_views")
 
+# Módulos incluídos en sandbox.
+PROD_DRUSH_NAMES=("${PROD_DRUSH_NAMES[@]}" "igbinary")
+
 # Módulos del core a desactivar.
 declare -a CORE_MODULES_DISABLED
 CORE_MODULES_DISABLED=('automated_cron')
+CORE_MODULES_DISABLED=("${CORE_MODULES_DISABLED[@]}" "block_content")
 CORE_MODULES_DISABLED=("${CORE_MODULES_DISABLED[@]}" "contact")
 CORE_MODULES_DISABLED=("${CORE_MODULES_DISABLED[@]}" "help")
 CORE_MODULES_DISABLED=("${CORE_MODULES_DISABLED[@]}" "history")
 CORE_MODULES_DISABLED=("${CORE_MODULES_DISABLED[@]}" "search")
 CORE_MODULES_DISABLED=("${CORE_MODULES_DISABLED[@]}" "shortcut")
 CORE_MODULES_DISABLED=("${CORE_MODULES_DISABLED[@]}" "tour")
-
-# Custom themes
-declare -a CUSTOM_THEME
-CUSTOM_THEME[0]='drupal/bootstrap_barrio: ^5.5'
-CUSTOM_THEME[1]='drupal/bootstrap_sass: ^5.0'

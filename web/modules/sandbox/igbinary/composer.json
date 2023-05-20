@@ -1,0 +1,21 @@
+{
+    "name": "drupal/igbinary",
+    "description": "Offers igbinary based serialization service.",
+    "type": "drupal-module",
+    "license": "GPL-2.0+",
+    "support": {
+        "issues": "https://www.drupal.org/project/issues/igbinary"
+    },
+    "require": {
+        "ext-redis": "*",
+        "ext-igbinary": "*",
+        "ext-zlib": "*",
+
+        "drupal/redis": "^1.6"
+    },
+    "autoload": {
+        "psr-4": {
+            "Drupal\\igbinary\\": "src"
+        }
+    }
+}

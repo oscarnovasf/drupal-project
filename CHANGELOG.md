@@ -6,6 +6,22 @@ Todos los cambios notables de este proyecto se documentarán en este archivo.
   > Ver [TODO.md](TODO.md)
 
 ---
+* ## [v3.1.0] - 2023-05-20
+  > Nuevas funcionalidades.
+
+  * #### Añadido:
+    - Módulo custom/sandbox para poder activar igbinary.
+
+  * #### Errores:
+    - Parche para Webform por error con PHP 8.2.
+
+  * #### Eliminado:
+    - Instalación de Bootstrap Barrio.
+    - Módulo "ckeditor_accordion".
+    - Módulo "views_ajax_history".
+    - Módulo "recaptcha".
+
+---
 * ## [v3.0.0] - 2023-05-19
   > Nuevas funcionalidades.
 
