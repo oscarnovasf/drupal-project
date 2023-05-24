@@ -6,6 +6,27 @@ Todos los cambios notables de este proyecto se documentarán en este archivo.
   > Ver [TODO.md](TODO.md)
 
 ---
+* ## [v3.1.1] - 2023-05-24
+  > Revisión.
+
+  * #### Añadido:
+    - Configuración para el CKEditor 5.
+
+  * #### Errores:
+    - Corrección de errores en la documentación por falta de actualización de
+      versiones anteriores.
+    - Error al activar "cookies_recaptcha" por falta de dependencias, ya no se
+      instala.
+    - En la versión anterior se había eliminado por error la opción de aplicar
+      parches en el composer.json.
+
+  * #### Eliminado:
+    - Módulo "default_content_deploy" y el script que hacía uso de este módulo
+      por no ser de utilidad real.
+    - Plugin de composer para aplicar parches, no tiene demasiado sentido en la
+      estructura actual del proyecto.
+
+---
 * ## [v3.1.0] - 2023-05-20
   > Nuevas funcionalidades.
 

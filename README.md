@@ -34,6 +34,9 @@ Drupal Project
   * Ejecutamos (desde la raíz) el comando `bash ./scripts/shell/install.sh` y
     seguimos las instrucciones del instalador.
 
+  > De forma opcional podemos usar el script [iniciar-proyecto](https://github.com/oscarnovasf/iniciar-proyecto)
+  > para descargar e iniciar un proyecto nuevo.
+
 * ### Proceso de instalación: [LANDO](https://lando.dev/)
   * Copiamos el contenido del proyecto en una carpeta de nuestra máquina.
   * Establecemos los valores correctos en el archivo `.lando.yml` para la
@@ -152,16 +155,8 @@ Al instalar con este `composer.json` se realizan las siguientes tareas:
 
     > Si se usa lando este comando está disponible como `lando phpcs`.
 
-  * #### pre_commit.sh
-    > Script para realizar tareas previas al commit.
-
-    - Realiza la exportación de entidades como taxonomías, alias, config_pages,
-      nodos..., todo ello se debe incluir manualmente en el script.
-
-    > Si se usa lando este comando está disponible como `lando precommit`.
-
-  * ### share.sh
-    > Script para generar un tunel y poder compartir nuestro proyecto local
+  * #### share.sh
+    > Script para generar un túnel y poder compartir nuestro proyecto local
     > fuera de nuestra red.
 
     Este script hace uso de [ngrok](https://ngrok.com/) por lo que será necesario
@@ -204,7 +199,6 @@ Al instalar con este `composer.json` se realizan las siguientes tareas:
   * Cambia todos los permisos de los archivos y pone los que corresponderían.
   * Genera el rol y usuario *manager*, con sus permisos por defecto.
   * Desactiva algunos bloques, vistas y módulos que no se usan normalmente.
-  * Permite elegir la plantilla de administración a instalar y la configura.
 
 * ### ¿Cómo actualizar el Core de Drupal?
 
@@ -259,24 +253,25 @@ Al instalar con este `composer.json` se realizan las siguientes tareas:
   },
   ```
 
-* ### ¿Cómo aplicar un parche a mi proyecto?
+* ### ¿Cómo aplicar un parche al proyecto?
 
-  Para la aplicación de parches se ha instalado la dependencia
-  [Composer Patches CLI](https://github.com/szeidler/composer-patches-cli), con
-  la que podrás instalar un parche con el siguiente comando:
+  La gestión de parches para el sistema está alojada en la carpeta:
+  `./config/patches/` en el archivo *composer.patches.json*.  
 
-  ```bash
-  composer patch-add <package> <description> <url>
+  Se recomienda que, siempre que sea posible, se descarguen los parches que
+  serán aplicados dentro de su propia carpeta.  
+
+  Por ejemplo, para un parche del core de drupal se generará la siguiente
+  estructura:
+
+  ```
+  - config
+    - patches
+      - core
+        - archivo.patch
   ```
 
-  *Ejemplo*:
-  ```bash
-  composer patch-add drupal/core "SA-CORE-2018-002" "https://cgit.drupalcode.org/drupal/rawdiff/?h=8.5.x&id=5ac8738fa69df34a0635f0907d661b509ff9a28f"
-  ```
-
-  > Otra manera es hacer uso del archivo *composer.patches.json*.
-
-* ### ¿Cómo mantener organizado mi composer.json?
+* ### ¿Cómo mantener organizado el composer.json?
 
   Para mantener el composer.json "normalizado", este proyecto hace uso del
   plugin [composer-normalize](https://github.com/ergebnis/composer-normalize).
@@ -286,10 +281,10 @@ Al instalar con este `composer.json` se realizan las siguientes tareas:
   composer normalize
   ```
 
-* ### ¿Cómo incluir mis composer.json de los módulos custom?
+* ### ¿Cómo incluir los composer.json de los módulos custom?
 
-  Para incluir los composer.json de mis módulos custom y que las dependencias
-  se añadan al directorio vendor del proyecto, se debe añadir la siguiente línea
+  Para incluir los composer.json de tus módulos custom y que las dependencias
+  se añadan al directorio vendor del proyecto, se hace uso de la siguiente línea
   dentro del composer.json principal:
 
   ```json
@@ -303,8 +298,8 @@ Al instalar con este `composer.json` se realizan las siguientes tareas:
 
 ---
 
-[version]: v3.0.1
-[version-badge]: https://img.shields.io/badge/Versión-3.0.1-blue.svg
+[version]: v3.1.1
+[version-badge]: https://img.shields.io/badge/Versión-3.1.1-blue.svg
 
 [license]: LICENSE.md
 [license-badge]: https://img.shields.io/badge/Licencia-GPLv3+-green.svg "Leer la licencia"

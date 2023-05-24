@@ -173,7 +173,6 @@ class ScriptHandler {
       'scripts/shell/initialize.sh',
       'scripts/shell/install.sh',
       'scripts/shell/phpcs.sh',
-      'scripts/shell/pre_commit.sh',
       'scripts/shell/share.sh',
       'scripts/shell/trans.sh',
     ];

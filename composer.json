@@ -48,7 +48,6 @@
         "drupal/coffee": "^1.2",
         "drupal/cookies": "^1.1",
         "drupal/csv_serialization": "^3.0@beta",
-        "drupal/default_content_deploy": "^2.0",
         "drupal/easy_breadcrumb": "^2.0",
         "drupal/editor_advanced_link": "^2.0",
         "drupal/entity_print": "^2.2",
@@ -173,7 +172,8 @@
                 "[web-root]/sites/default/default.services.yml": false,
                 "[web-root]/sites/default/default.settings.php": false,
                 "[web-root]/robots.txt": false,
-                "[web-root]/.gitattributes": false
+                "[web-root]/.gitattributes": false,
+                "[web-root]/.editorconfig": false
             },
             "overwrite": false
         },

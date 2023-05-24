@@ -165,13 +165,6 @@ tooling:
     cmd:
       - ./scripts/shell/trans.sh
 
-  # lando precommit
-  precommit:
-    service: appserver
-    description: Operaciones previas al commit.
-    cmd:
-      - ./scripts/shell/pre_commit.sh
-
   # ############################################################################
   #  Zona de modificación de Lando.
   # ############################################################################
