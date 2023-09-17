@@ -5,17 +5,16 @@ Drupal Project
   <img alt="Drupal Logo" src="https://www.drupal.org/files/Wordmark_blue_RGB.png" height="60px">
 </div>
 
->Plantilla para [Composer](https://getcomposer.org/) de instalación de
->Drupal 9.x.
+>Plantilla para [Composer](https://getcomposer.org/) de instalación de Drupal.
 
 [![version][version-badge]][changelog]
 [![Licencia][license-badge]][license]
 [![Código de conducta][conduct-badge]][conduct]
 [![wakatime](https://wakatime.com/badge/user/236d57da-61e8-46f2-980b-7af630b18f42/project/e98b008a-b80c-421e-862a-b2c136d434b5.svg)](https://wakatime.com/badge/user/236d57da-61e8-46f2-980b-7af630b18f42/project/e98b008a-b80c-421e-862a-b2c136d434b5)
 
-## Instalación
+## Requerimientos
 
-* ### Requerimientos
+* ### Herramientas
   * Es necesario tener instalada la `versión ^2.0` de
     [Composer](https://getcomposer.org/doc/00-intro.md#installation-linux-unix-osx)
     o superior.
@@ -23,8 +22,19 @@ Drupal Project
     [JQ](https://stedolan.github.io/jq/).
   * Es necesario tener instalada la herramienta `pv` para la línea de comandos.
     [PV](http://www.ivarch.com/programs/pv.shtml).
+
+* ### Otros Requerimientos
+  * El proyecto está pensado para hacer uso de *Redis* / *KeyDB*, por lo que
+    será necesario tener acceso a una de estas herramientas.  
+    Si no se desea usar, se puede desactivar en el archivo de variables de
+    entorno.
+  * El proyecto también hace uso de *IgBinary*, si no se desea utilizar es
+    preciso cambiar el nombre al archivo `igbinary.services.yml` situado en la
+    carpeta `web\sites`.
   * Si se quiere poder enviar una url de nuestro proyecto en local con Lando, es
     necesario instalar y configurar `ngrok` [NGROK](https://ngrok.com/).
+
+## Instalación
 
 * ### Proceso de instalación: Máquina local/servidor
   * Copiamos el contenido del proyecto en la carpeta raíz de nuestro servidor.
@@ -221,19 +231,18 @@ Al instalar con este `composer.json` se realizan las siguientes tareas:
 
 * ### ¿Cómo especificar una versión concreta de PHP?
 
-  En este proyecto se usa la versión de PHP 7.4 como mínimo
-  (ver [Environment requirements of Drupal 9](https://www.drupal.org/docs/understanding-drupal/how-drupal-9-was-made-and-what-is-included/environment-requirements-of)),
+  En este proyecto se usa la versión de PHP 8.1 como mínimo
+  (ver [System Requirements](https://www.drupal.org/docs/getting-started/system-requirements/overview)),
   pero es posible que al usar `composer update` se actualicen algunos paquetes
-  que un requerimiento superior a PHP 7.3+.
+  con un requerimiento superior.
 
   Para evitar esto puedes indicar en la sección `config` del `composer.json` la
   versión que quieres usar:
 
   ```json
   "config": {
-      "sort-packages": true,
       "platform": {
-          "php": "7.3.19"
+          "php": "8.1.6"
       }
   },
   ```
@@ -256,10 +265,10 @@ Al instalar con este `composer.json` se realizan las siguientes tareas:
 * ### ¿Cómo aplicar un parche al proyecto?
 
   La gestión de parches para el sistema está alojada en la carpeta:
-  `./config/patches/` en el archivo *composer.patches.json*.  
+  `./config/patches/` en el archivo *composer.patches.json*.
 
   Se recomienda que, siempre que sea posible, se descarguen los parches que
-  serán aplicados dentro de su propia carpeta.  
+  serán aplicados dentro de su propia carpeta.
 
   Por ejemplo, para un parche del core de drupal se generará la siguiente
   estructura:
@@ -298,8 +307,8 @@ Al instalar con este `composer.json` se realizan las siguientes tareas:
 
 ---
 
-[version]: v3.1.1
-[version-badge]: https://img.shields.io/badge/Versión-3.1.1-blue.svg
+[version]: v3.2.0
+[version-badge]: https://img.shields.io/badge/Versión-3.2.0-blue.svg
 
 [license]: LICENSE.md
 [license-badge]: https://img.shields.io/badge/Licencia-GPLv3+-green.svg "Leer la licencia"

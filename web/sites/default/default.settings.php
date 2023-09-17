@@ -3,7 +3,7 @@
 use Dotenv\Dotenv;
 use Drupal\Core\Installer\InstallerKernel;
 
-// @codingStandardsIgnoreFile
+// phpcs:ignoreFile
 
 /**
  * @file
@@ -96,7 +96,19 @@ if (file_exists($app_root . '/../env')) {
  * ];
  * @endcode
  */
-$databases = [];
+$databases['default']['default'] = [
+  'database'      => $_ENV['DRUPAL_DB_DATABASE'],
+  'driver'        => $_ENV['DRUPAL_DB_DRIVER'],
+  'host'          => $_ENV['DRUPAL_DB_HOSTNAME'],
+  'namespace'     => $_ENV['DRUPAL_DB_NAMESPACE'],
+  'password'      => $_ENV['DRUPAL_DB_PASSWORD'],
+  'port'          => $_ENV['DRUPAL_DB_PORT'],
+  'prefix'        => $_ENV['DRUPAL_DB_PREFIX'],
+  'username'      => $_ENV['DRUPAL_DB_USER'],
+  'init_commands' => [
+    'isolation_level' => 'SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED',
+  ],
+];
 
 /**
  * Customizing database settings.
@@ -123,14 +135,6 @@ $databases = [];
  * namespace. This is optional for projects managed with Composer if the
  * driver's namespace is in Composer's autoloader.
  *
- * Transaction support is enabled by default for all drivers that support it,
- * including MySQL. To explicitly disable it, set the 'transactions' key to
- * FALSE.
- * Note that some configurations of MySQL, such as the MyISAM engine, don't
- * support it and will proceed silently even if enabled. If you experience
- * transaction related crashes with such configuration, set the 'transactions'
- * key to FALSE.
- *
  * For each database, you may optionally specify multiple "target" databases.
  * A target database allows Drupal to try to send certain queries to a
  * different database if it can but fall back to the default connection if not.
@@ -154,49 +158,31 @@ $databases = [];
  * request as needed.  The fourth line creates a new database with a name of
  * "extra".
  *
- * You can optionally set prefixes for some or all database table names
- * by using the 'prefix' setting. If a prefix is specified, the table
- * name will be prepended with its value. Be sure to use valid database
- * characters only, usually alphanumeric and underscore. If no prefixes
- * are desired, leave it as an empty string ''.
+ * For MySQL, MariaDB or equivalent databases the 'isolation_level' option can
+ * be set. The recommended transaction isolation level for Drupal sites is
+ * 'READ COMMITTED'. The 'REPEATABLE READ' option is supported but can result
+ * in deadlocks, the other two options are 'READ UNCOMMITTED' and 'SERIALIZABLE'.
+ * They are available but not supported; use them at your own risk. For more
+ * info:
+ * https://dev.mysql.com/doc/refman/5.7/en/innodb-transaction-isolation-levels.html
  *
- * To have all database names prefixed, set 'prefix' as a string:
+ * On your settings.php, change the isolation level:
+ * @code
+ * $databases['default']['default']['init_commands'] = [
+ *   'isolation_level' => 'SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED',
+ * ];
+ * @endcode
+ *
+ * You can optionally set a prefix for all database table names by using the
+ * 'prefix' setting. If a prefix is specified, the table name will be prepended
+ * with its value. Be sure to use valid database characters only, usually
+ * alphanumeric and underscore. If no prefix is desired, do not set the 'prefix'
+ * key or set its value to an empty string ''.
+ *
+ * For example, to have all database table prefixed with 'main_', set:
  * @code
  *   'prefix' => 'main_',
  * @endcode
- *
- * Per-table prefixes are deprecated as of Drupal 8.2, and will be removed in
- * Drupal 9.0. After that, only a single prefix for all tables will be
- * supported.
- *
- * To provide prefixes for specific tables, set 'prefix' as an array.
- * The array's keys are the table names and the values are the prefixes.
- * The 'default' element is mandatory and holds the prefix for any tables
- * not specified elsewhere in the array. Example:
- * @code
- *   'prefix' => [
- *     'default'   => 'main_',
- *     'users'     => 'shared_',
- *     'sessions'  => 'shared_',
- *     'role'      => 'shared_',
- *     'authmap'   => 'shared_',
- *   ],
- * @endcode
- * You can also use a reference to a schema/database as a prefix. This may be
- * useful if your Drupal installation exists in a schema that is not the default
- * or you want to access several databases from the same code base at the same
- * time.
- * Example:
- * @code
- *   'prefix' => [
- *     'default'   => 'main.',
- *     'users'     => 'shared.',
- *     'sessions'  => 'shared.',
- *     'role'      => 'shared.',
- *     'authmap'   => 'shared.',
- *   ];
- * @endcode
- * NOTE: MySQL and SQLite's definition of a schema is a database.
  *
  * Advanced users can add or override initial commands to execute when
  * connecting to the database server, as well as PDO connection settings. For
@@ -219,9 +205,9 @@ $databases = [];
  * information on these defaults and the potential issues.
  *
  * More details can be found in the constructor methods for each driver:
- * - \Drupal\Core\Database\Driver\mysql\Connection::__construct()
- * - \Drupal\Core\Database\Driver\pgsql\Connection::__construct()
- * - \Drupal\Core\Database\Driver\sqlite\Connection::__construct()
+ * - \Drupal\mysql\Driver\Database\mysql\Connection::__construct()
+ * - \Drupal\pgsql\Driver\Database\pgsql\Connection::__construct()
+ * - \Drupal\sqlite\Driver\Database\sqlite\Connection::__construct()
  *
  * Sample Database configuration format for PostgreSQL (pgsql):
  * @code
@@ -246,9 +232,9 @@ $databases = [];
  * Sample Database configuration format for a driver in a contributed module:
  * @code
  *   $databases['default']['default'] = [
- *     'driver' => 'mydriver',
- *     'namespace' => 'Drupal\mymodule\Driver\Database\mydriver',
- *     'autoload' => 'modules/mymodule/src/Driver/Database/mydriver/',
+ *     'driver' => 'my_driver',
+ *     'namespace' => 'Drupal\my_module\Driver\Database\my_driver',
+ *     'autoload' => 'modules/my_module/src/Driver/Database/my_driver/',
  *     'database' => 'databasename',
  *     'username' => 'sqlusername',
  *     'password' => 'sqlpassword',
@@ -257,19 +243,6 @@ $databases = [];
  *   ];
  * @endcode
  */
-$databases['default']['default'] = [
-  'database' => $_ENV['DRUPAL_DB_DATABASE'],
-  'driver' => $_ENV['DRUPAL_DB_DRIVER'],
-  'host' => $_ENV['DRUPAL_DB_HOSTNAME'],
-  'namespace' => $_ENV['DRUPAL_DB_NAMESPACE'],
-  'password' => $_ENV['DRUPAL_DB_PASSWORD'],
-  'port' => $_ENV['DRUPAL_DB_PORT'],
-  'prefix' => $_ENV['DRUPAL_DB_PREFIX'],
-  'username' => $_ENV['DRUPAL_DB_USER'],
-  'init_commands' => [
-    'isolation_level' => 'SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED',
-  ],
-];
 
 /**
  * Location of the site configuration files.
@@ -282,7 +255,7 @@ $databases['default']['default'] = [
  * directory in the public files path. The setting below allows you to set
  * its location.
  */
-# $settings['config_sync_directory'] = '/directory/outside/webroot';
+$settings['config_sync_directory'] = $app_root . '/../config/sync/global';
 
 /**
  * Settings:
@@ -295,6 +268,30 @@ $databases['default']['default'] = [
  */
 
 /**
+ * Exclude modules from configuration synchronization.
+ *
+ * On config export sync, no config or dependent config of any excluded module
+ * is exported. On config import sync, any config of any installed excluded
+ * module is ignored. In the exported configuration, it will be as if the
+ * excluded module had never been installed. When syncing configuration, if an
+ * excluded module is already installed, it will not be uninstalled by the
+ * configuration synchronization, and dependent configuration will remain
+ * intact. This affects only configuration synchronization; single import and
+ * export of configuration are not affected.
+ *
+ * Drupal does not validate or sanity check the list of excluded modules. For
+ * instance, it is your own responsibility to never exclude required modules,
+ * because it would mean that the exported configuration can not be imported
+ * anymore.
+ *
+ * This is an advanced feature and using it means opting out of some of the
+ * guarantees the configuration synchronization provides. It is not recommended
+ * to use this feature with modules that affect Drupal in a major way such as
+ * the language or field module.
+ */
+$settings['config_exclude_modules'] = explode(',', $_ENV['CONFIG_EXCLUDE_MODULES']);
+
+/**
  * Salt for one-time login links, cancel links, form tokens, etc.
  *
  * This variable will be set to a random value by the installer. All one-time
@@ -303,7 +300,8 @@ $databases['default']['default'] = [
  * variable has the same value on each server.
  *
  * For enhanced security, you may set this variable to the contents of a file
- * outside your document root; you should also ensure that this file is not
+ * outside your document root, and vary the value across environments (like
+ * production and development); you should also ensure that this file is not
  * stored with backups of your database.
  *
  * Example:
@@ -337,6 +335,22 @@ $settings['deployment_identifier'] = \Drupal::VERSION;
 $settings['update_free_access'] = FALSE;
 
 /**
+ * Fallback to HTTP for Update Manager and for fetching security advisories.
+ *
+ * If your site fails to connect to updates.drupal.org over HTTPS (either when
+ * fetching data on available updates, or when fetching the feed of critical
+ * security announcements), you may uncomment this setting and set it to TRUE to
+ * allow an insecure fallback to HTTP. Note that doing so will open your site up
+ * to a potential man-in-the-middle attack. You should instead attempt to
+ * resolve the issues before enabling this option.
+ * @see https://www.drupal.org/docs/system-requirements/php-requirements#openssl
+ * @see https://en.wikipedia.org/wiki/Man-in-the-middle_attack
+ * @see \Drupal\update\UpdateFetcher
+ * @see \Drupal\system\SecurityAdvisories\SecurityAdvisoriesFetcher
+ */
+# $settings['update_fetch_with_http_fallback'] = TRUE;
+
+/**
  * External access proxy settings:
  *
  * If your site must access the Internet via a web proxy then you can enter the
@@ -355,6 +369,15 @@ $settings['update_free_access'] = FALSE;
 # $settings['http_client_config']['proxy']['http'] = 'http://proxy_user:proxy_pass@example.com:8080';
 # $settings['http_client_config']['proxy']['https'] = 'http://proxy_user:proxy_pass@example.com:8080';
 # $settings['http_client_config']['proxy']['no'] = ['127.0.0.1', 'localhost'];
+
+/**
+ * Solves problem on using media module to place a Youtube video.
+ * See: https://menetray.com/en/blog/youtube-problems-drupal-8
+ *
+ * If this problem also happens in production, this line must be moved to
+ * settings.php file.
+ */
+$settings['http_client_config']['force_ip_resolve'] = 'v4';
 
 /**
  * Reverse Proxy Configuration:
@@ -389,10 +412,13 @@ $settings['update_free_access'] = FALSE;
 # $settings['reverse_proxy'] = TRUE;
 
 /**
- * Specify every reverse proxy IP address in your environment.
- * This setting is required if $settings['reverse_proxy'] is TRUE.
+ * Reverse proxy addresses.
+ *
+ * Specify every reverse proxy IP address in your environment, as an array of
+ * IPv4/IPv6 addresses or subnets in CIDR notation. This setting is required if
+ * $settings['reverse_proxy'] is TRUE.
  */
-# $settings['reverse_proxy_addresses'] = ['a.b.c.d', ...];
+# $settings['reverse_proxy_addresses'] = ['a.b.c.d', 'e.f.g.h/24', ...];
 
 /**
  * Reverse proxy trusted headers.
@@ -400,17 +426,20 @@ $settings['update_free_access'] = FALSE;
  * Sets which headers to trust from your reverse proxy.
  *
  * Common values are:
- * - \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_ALL
+ * - \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_FOR
+ * - \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_HOST
+ * - \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_PORT
+ * - \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_PROTO
  * - \Symfony\Component\HttpFoundation\Request::HEADER_FORWARDED
  *
  * Note the default value of
  * @code
- * \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_ALL | \Symfony\Component\HttpFoundation\Request::HEADER_FORWARDED
+ * \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_FOR | \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_HOST | \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_PORT | \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_PROTO | \Symfony\Component\HttpFoundation\Request::HEADER_FORWARDED
  * @endcode
  * is not secure by default. The value should be set to only the specific
  * headers the reverse proxy uses. For example:
  * @code
- * \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_ALL
+ * \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_FOR | \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_HOST | \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_PORT | \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_PROTO
  * @endcode
  * This would trust the following headers:
  * - X_FORWARDED_FOR
@@ -418,12 +447,14 @@ $settings['update_free_access'] = FALSE;
  * - X_FORWARDED_PROTO
  * - X_FORWARDED_PORT
  *
- * @see \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_ALL
+ * @see \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_FOR
+ * @see \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_HOST
+ * @see \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_PORT
+ * @see \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_PROTO
  * @see \Symfony\Component\HttpFoundation\Request::HEADER_FORWARDED
  * @see \Symfony\Component\HttpFoundation\Request::setTrustedProxies
  */
-# $settings['reverse_proxy_trusted_headers'] = \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_ALL | \Symfony\Component\HttpFoundation\Request::HEADER_FORWARDED;
-
+# $settings['reverse_proxy_trusted_headers'] = \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_FOR | \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_HOST | \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_PORT | \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_PROTO | \Symfony\Component\HttpFoundation\Request::HEADER_FORWARDED;
 
 /**
  * Page caching:
@@ -442,7 +473,12 @@ $settings['update_free_access'] = FALSE;
  * getting cached pages from the proxy.
  */
 # $settings['omit_vary_cookie'] = TRUE;
+$settings['cache_prefix'] = $_ENV['PROJECT_CODE'] . '_';
 
+/* APCU */
+$settings['cache']['bins']['bootstrap'] = 'cache.backend.chainedfast';
+$settings['cache']['bins']['discovery'] = 'cache.backend.chainedfast';
+$settings['cache']['bins']['config'] = 'cache.backend.chainedfast';
 
 /**
  * Cache TTL for client error (4xx) responses.
@@ -469,34 +505,12 @@ $settings['update_free_access'] = FALSE;
 /**
  * Class Loader.
  *
- * If the APC extension is detected, the Symfony APC class loader is used for
- * performance reasons. Detection can be prevented by setting
- * class_loader_auto_detect to false, as in the example below.
+ * If the APCu extension is detected, the classloader will be optimized to use
+ * it. Set to FALSE to disable this.
+ *
+ * @see https://getcomposer.org/doc/articles/autoloader-optimization.md
  */
 # $settings['class_loader_auto_detect'] = FALSE;
-
-/*
- * If the APC extension is not detected, either because APC is missing or
- * because auto-detection has been disabled, auto-loading falls back to
- * Composer's ClassLoader, which is good for development as it does not break
- * when code is moved in the file system. You can also decorate the base class
- * loader with another cached solution than the Symfony APC class loader, as
- * all production sites should have a cached class loader of some sort enabled.
- *
- * To do so, you may decorate and replace the local $class_loader variable. For
- * example, to use Symfony's APC class loader without automatic detection,
- * uncomment the code below.
- */
-/*
-if ($settings['hash_salt']) {
-  $prefix = 'drupal.' . hash('sha256', 'drupal.' . $settings['hash_salt']);
-  $apc_loader = new \Symfony\Component\ClassLoader\ApcClassLoader($prefix, $class_loader);
-  unset($prefix);
-  $class_loader->unregister();
-  $apc_loader->register();
-  $class_loader = $apc_loader;
-}
-*/
 
 /**
  * Authorized file system operations:
@@ -527,8 +541,17 @@ if ($settings['hash_salt']) {
  *
  * Value should be in PHP Octal Notation, with leading zero.
  */
-# $settings['file_chmod_directory'] = 0775;
-# $settings['file_chmod_file'] = 0664;
+$settings['file_chmod_directory'] = 0775;
+$settings['file_chmod_file'] = 0664;
+
+/**
+ * Optimized assets path:
+ *
+ * A local file system path where optimized assets will be stored. This directory
+ * must exist and be writable by Drupal. This directory must be relative to
+ * the Drupal installation directory and be accessible over the web.
+ */
+# $settings['file_assets_path'] = 'sites/default/files';
 
 /**
  * Public file base URL:
@@ -551,6 +574,65 @@ if ($settings['hash_salt']) {
  * the Drupal installation directory and be accessible over the web.
  */
 # $settings['file_public_path'] = 'sites/default/files';
+
+/**
+ * Additional public file schemes:
+ *
+ * Public schemes are URI schemes that allow download access to all users for
+ * all files within that scheme.
+ *
+ * The "public" scheme is always public, and the "private" scheme is always
+ * private, but other schemes, such as "https", "s3", "example", or others,
+ * can be either public or private depending on the site. By default, they're
+ * private, and access to individual files is controlled via
+ * hook_file_download().
+ *
+ * Typically, if a scheme should be public, a module makes it public by
+ * implementing hook_file_download(), and granting access to all users for all
+ * files. This could be either the same module that provides the stream wrapper
+ * for the scheme, or a different module that decides to make the scheme
+ * public. However, in cases where a site needs to make a scheme public, but
+ * is unable to add code in a module to do so, the scheme may be added to this
+ * variable, the result of which is that system_file_download() grants public
+ * access to all files within that scheme.
+ */
+# $settings['file_additional_public_schemes'] = ['example'];
+
+/**
+ * File schemes whose paths should not be normalized:
+ *
+ * Normally, Drupal normalizes '/./' and '/../' segments in file URIs in order
+ * to prevent unintended file access. For example, 'private://css/../image.png'
+ * is normalized to 'private://image.png' before checking access to the file.
+ *
+ * On Windows, Drupal also replaces '\' with '/' in URIs for the local
+ * filesystem.
+ *
+ * If file URIs with one or more scheme should not be normalized like this, then
+ * list the schemes here. For example, if 'porcelain://china/./plate.png' should
+ * not be normalized to 'porcelain://china/plate.png', then add 'porcelain' to
+ * this array. In this case, make sure that the module providing the 'porcelain'
+ * scheme does not allow unintended file access when using '/../' to move up the
+ * directory tree.
+ */
+# $settings['file_sa_core_2023_005_schemes'] = ['porcelain'];
+
+/**
+ * Configuration for phpinfo() admin status report.
+ *
+ * Drupal's admin UI includes a report at admin/reports/status/php which shows
+ * the output of phpinfo(). The full output can contain sensitive information
+ * so by default Drupal removes some sections.
+ *
+ * This behaviour can be configured by setting this variable to a different
+ * value corresponding to the flags parameter of phpinfo().
+ *
+ * If you need to expose more information in the report - for example to debug a
+ * problem - consider doing so temporarily.
+ *
+ * @see https://www.php.net/manual/function.phpinfo.php
+ */
+# $settings['sa_core_2023_004_phpinfo_flags'] = ~ (INFO_VARIABLES | INFO_ENVIRONMENT);
 
 /**
  * Private file path:
@@ -578,7 +660,6 @@ $settings['file_private_path'] = $app_root . '/../private_files';
  *
  * @see \Drupal\Component\FileSystem\FileSystem::getOsTemporaryDirectory()
  */
-$config['system.file']['path']['temporary'] = $app_root . '/../tmp';
 $settings['file_temp_path'] = '../tmp';
 
 /**
@@ -602,7 +683,7 @@ $settings['file_temp_path'] = '../tmp';
  * any added language. (eg locale_custom_strings_de for german).
  */
 # $settings['locale_custom_strings_en'][''] = [
-#   'forum'      => 'Discussion board',
+#   'Home' => 'Front page',
 #   '@count min' => '@count minutes',
 # ];
 
@@ -616,7 +697,7 @@ $settings['file_temp_path'] = '../tmp';
  *
  * Note: This setting does not apply to installation and update pages.
  */
-# $settings['maintenance_theme'] = 'bartik';
+# $settings['maintenance_theme'] = 'claro';
 
 /**
  * PHP settings:
@@ -633,9 +714,9 @@ $settings['file_temp_path'] = '../tmp';
 /**
  * If you encounter a situation where users post a large amount of text, and
  * the result is stripped out upon viewing but can still be edited, Drupal's
- * output filter may not have sufficient memory to process it.  If you
+ * output filter may not have sufficient memory to process it. If you
  * experience this issue, you may wish to uncomment the following two lines
- * and increase the limits of these variables.  For more information, see
+ * and increase the limits of these variables. For more information, see
  * http://php.net/manual/pcre.configuration.php.
  */
 # ini_set('pcre.backtrack_limit', 200000);
@@ -665,38 +746,35 @@ $settings['file_temp_path'] = '../tmp';
  */
 # $config['system.site']['name'] = 'My Drupal site';
 # $config['user.settings']['anonymous'] = 'Visitor';
+$config['locale.settings']['translation']['path'] = '../config/translations';
+$config['file.settings']['make_unused_managed_files_temporary'] = TRUE;
+$config['system.file']['path']['temporary'] = $app_root . '/../tmp';
 
 /**
- * Fast 404 pages:
- *
- * Drupal can generate fully themed 404 pages. However, some of these responses
- * are for images or other resource files that are not displayed to the user.
- * This can waste bandwidth, and also generate server load.
- *
- * The options below return a simple, fast 404 page for URLs matching a
- * specific pattern:
- * - $config['system.performance']['fast_404']['exclude_paths']: A regular
- *   expression to match paths to exclude, such as images generated by image
- *   styles, or dynamically-resized images. The default pattern provided below
- *   also excludes the private file system. If you need to add more paths, you
- *   can add '|path' to the expression.
- * - $config['system.performance']['fast_404']['paths']: A regular expression to
- *   match paths that should return a simple 404 page, rather than the fully
- *   themed 404 page. If you don't have any aliases ending in htm or html you
- *   can add '|s?html?' to the expression.
- * - $config['system.performance']['fast_404']['html']: The html to return for
- *   simple 404 pages.
- *
- * Remove the leading hash signs if you would like to alter this functionality.
+ * Indicador del entorno activo.
  */
-# $config['system.performance']['fast_404']['exclude_paths'] = '/\/(?:styles)|(?:system\/files)\//';
-# $config['system.performance']['fast_404']['paths'] = '/\.(?:txt|png|gif|jpe?g|css|js|ico|swf|flv|cgi|bat|pl|dll|exe|asp)$/i';
-# $config['system.performance']['fast_404']['html'] = '<!DOCTYPE html><html><head><title>404 Not Found</title></head><body><h1>Not Found</h1><p>The requested URL "@path" was not found on this server.</p></body></html>';
+$environments_colors = [
+  'loc' => '#aa3300',
+  'dev' => '#ffff00',
+  'stg' => '#aa5501',
+  'pro' => '#5C8F2F'
+];
+if (isset($environments_colors[$_ENV['DRUPAL_ENV']])) {
+  $config['environment_indicator.indicator']['bg_color'] = $environments_colors[$_ENV['DRUPAL_ENV']];
+  $config['environment_indicator.indicator']['name'] = strtoupper($_ENV['DRUPAL_ENV']);
+}
+else {
+  $config['environment_indicator.indicator']['bg_color'] = '';
+  $config['environment_indicator.indicator']['fg_color'] = '';
+  $config['environment_indicator.indicator']['name'] = '';
+  $config['environment_indicator.settings']['favicon'] = '';
+}
 
 /**
  * Load services definition file.
  */
 $settings['container_yamls'][] = $app_root . '/' . $site_path . '/services.yml';
+$settings['container_yamls'][] = $app_root . '/' . $site_path . '/igbinary.services.yml';
 
 /**
  * Override the default service container class.
@@ -751,6 +829,8 @@ $settings['container_yamls'][] = $app_root . '/' . $site_path . '/services.yml';
  * @endcode
  * will allow the site to run off of all variants of example.com and
  * example.org, with all subdomains included.
+ *
+ * @see https://www.drupal.org/docs/installing-drupal/trusted-host-settings
  */
 $settings['trusted_host_patterns'] = [
   '^' . $_ENV['DRUPAL_TRUSTED_HOST'] . '$',
@@ -804,41 +884,52 @@ $settings['entity_update_backup'] = TRUE;
  */
 $settings['migrate_node_migrate_type_classic'] = FALSE;
 
+/**
+ * The default settings for migration sources.
+ *
+ * These settings are used as the default settings on the Credential form at
+ * /upgrade/credentials.
+ *
+ * - migrate_source_version - The version of the source database. This can be
+ *   '6' or '7'. Defaults to '7'.
+ * - migrate_source_connection - The key in the $databases array for the source
+ *   site.
+ * - migrate_file_public_path - The location of the source Drupal 6 or Drupal 7
+ *   public files. This can be a local file directory containing the source
+ *   Drupal 6 or Drupal 7 site (e.g /var/www/docroot), or the site address
+ *   (e.g http://example.com).
+ * - migrate_file_private_path - The location of the source Drupal 7 private
+ *   files. This can be a local file directory containing the source Drupal 7
+ *   site (e.g /var/www/docroot), or empty to use the same value as Public
+ *   files directory.
+ *
+ * Sample configuration for a drupal 6 source site with the source files in a
+ * local directory.
+ *
+ * @code
+ * $settings['migrate_source_version'] = '6';
+ * $settings['migrate_source_connection'] = 'migrate';
+ * $settings['migrate_file_public_path'] = '/var/www/drupal6';
+ * @endcode
+ *
+ * Sample configuration for a drupal 7 source site with public source files on
+ * the source site and the private files in a local directory.
+ *
+ * @code
+ * $settings['migrate_source_version'] = '7';
+ * $settings['migrate_source_connection'] = 'migrate';
+ * $settings['migrate_file_public_path'] = 'https://drupal7.com';
+ * $settings['migrate_file_private_path'] = '/var/www/drupal7';
+ * @endcode
+ */
+# $settings['migrate_source_connection'] = '';
+# $settings['migrate_source_version'] = '';
+# $settings['migrate_file_public_path'] = '';
+# $settings['migrate_file_private_path'] = '';
+
 /* Error with Permissions-Policy header: Origin trial controlled feature
  * not enabled: 'interest-cohort'. */
 $settings['block_interest_cohort'] = FALSE;
-
-$config['locale.settings']['translation']['path'] = '../config/translations';
-$settings['config_sync_directory'] = $app_root . '/../config/sync/global';
-$settings['default_content_deploy_content_directory'] = '../config/sync/content';
-
-$config['file.settings']['make_unused_managed_files_temporary'] = TRUE;
-
-/**
- * Config split (Activo el entorno actual).
- */
-// $config['config_split.config_split.' . $_ENV['DRUPAL_ENV']]['status'] = TRUE;
-$settings['config_exclude_modules'] = explode(',', $_ENV['CONFIG_EXCLUDE_MODULES']);
-
-/**
- * Indicador del entorno activo.
- */
-$environments_colors = [
-  'loc' => '#aa3300',
-  'dev' => '#ffff00',
-  'stg' => '#aa5501',
-  'pro' => '#5C8F2F'
-];
-if (isset($environments_colors[$_ENV['DRUPAL_ENV']])) {
-  $config['environment_indicator.indicator']['bg_color'] = $environments_colors[$_ENV['DRUPAL_ENV']];
-  $config['environment_indicator.indicator']['name'] = strtoupper($_ENV['DRUPAL_ENV']);
-}
-else {
-  $config['environment_indicator.indicator']['bg_color'] = '';
-  $config['environment_indicator.indicator']['fg_color'] = '';
-  $config['environment_indicator.indicator']['name'] = '';
-  $config['environment_indicator.settings']['favicon'] = '';
-}
 
 /**
  * Redis/ KeyDB.
@@ -856,18 +947,10 @@ if (!empty($_ENV['REDIS_HOST']) &&
   $settings['redis.connection']['base'] = $_ENV['REDIS_DB'] ?: 0;
   $settings['redis.settings']['perm_ttl'] = $_ENV['REDIS_TTL'];
 
-  $settings['cache_prefix'] = $_ENV['PROJECT_CODE'] . '_';
-
   $settings['cache']['default'] = 'cache.backend.redis';
 
-  $settings['container_yamls'][] = $app_root . '/sites/cache.services.yml';
-  $settings['container_yamls'][] = $app_root . '/sites/igbinary.services.yml';
+  $settings['container_yamls'][] = $app_root . '/' . $site_path . '/cache.services.yml';
 }
-
-/* APCU */
-$settings['cache']['bins']['bootstrap'] = 'cache.backend.chainedfast';
-$settings['cache']['bins']['discovery'] = 'cache.backend.chainedfast';
-$settings['cache']['bins']['config'] = 'cache.backend.chainedfast';
 
 /**
  * Conjunto de configuraciones específicas para cada entorno.
@@ -892,8 +975,10 @@ switch ($_ENV['DRUPAL_ENV']) {
     break;
 }
 
+$config['config_split.config_split.' . $_ENV['DRUPAL_ENV']]['status'] = TRUE;
+
 /**
- * Load local development override configuration, if available.
+ * Load local/custom development override configuration, if available.
  *
  * Create a settings.local.php file to override variables on secondary (staging,
  * development, etc.) installations of this site.
@@ -905,13 +990,10 @@ switch ($_ENV['DRUPAL_ENV']) {
  *
  * Keep this code block at the end of this file to take full effect.
  */
-if (file_exists($app_root . '/' . $site_path . '/settings.local.php')) {
-  include $app_root . '/' . $site_path . '/settings.local.php';
-}
-
-/**
- * Incluye en este archivo tus configuraciones personalizadas.
- */
 if (file_exists($app_root . '/' . $site_path . '/settings.custom.php')) {
   include $app_root . '/' . $site_path . '/settings.custom.php';
+}
+
+if (file_exists($app_root . '/' . $site_path . '/settings.local.php')) {
+  include $app_root . '/' . $site_path . '/settings.local.php';
 }

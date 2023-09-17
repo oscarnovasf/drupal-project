@@ -6,8 +6,9 @@
  */
 
 use Drupal\Core\Routing\RouteMatchInterface;
-use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Render\Markup;
+use Drupal\Core\Site\Settings;
+use Drupal\redis\ClientFactory;
 
 use Drupal\igbinary\lib\general\MarkdownParser;
 
@@ -46,4 +47,35 @@ function igbinary_help($route_name, RouteMatchInterface $route_match) {
 
     default:
   }
+}
+
+/**
+ * Implements hook_cache_flush().
+ */
+function igbinary_cache_flush() {
+  if (!(ClientFactory::hasClient())) {
+    return;
+  }
+
+  $redis = ClientFactory::getClient();
+  if (!is_object($redis)) {
+    return;
+  }
+
+  // Get the database index to use. If not set, simply abort by returning.
+  $redis_connection_settings = Settings::get('redis.connection');
+  if (!isset($redis_connection_settings['interface'])) {
+    return;
+  }
+
+  // Get the cache prefix or prefixes.
+  $prefix = Settings::get('cache_prefix');
+
+  // Delete any keys found, handling arrays of prefixes/bins as well.
+  if (is_array($prefix)) {
+    return;
+  }
+
+  $keys = $redis->keys("$prefix*");
+  $redis->del($keys);
 }

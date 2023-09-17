@@ -28,7 +28,6 @@ class ScriptHandler {
     $dirs = [
       'config/db',
       'config/sync',
-      'config/sync/content',
       'config/sync/global',
       'config/sync/dev',
       'config/sync/loc',
@@ -207,6 +206,9 @@ class ScriptHandler {
       }
       if ($fs->exists($drupalRoot . '/sites/default/settings.local.php')) {
         $fs->chmod($drupalRoot . '/sites/default/settings.local.php', 0555);
+      }
+      if ($fs->exists($drupalRoot . '/sites/default/settings.custom.php')) {
+        $fs->chmod($drupalRoot . '/sites/default/settings.custom.php', 0555);
       }
 
       $event->getIO()->write("Establecidos permisos por defecto.");

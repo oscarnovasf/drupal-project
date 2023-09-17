@@ -1,11 +1,30 @@
 <?php
 
-// @codingStandardsIgnoreFile
+// phpcs:ignoreFile
 
-use Drupal\Component\Assertion\Handle;
+/**
+ * @file
+ * Local development override configuration feature.
+ */
 
+/**
+ * Assertions.
+ *
+ * The Drupal project primarily uses runtime assertions to enforce the
+ * expectations of the API by failing when incorrect calls are made by code
+ * under development.
+ *
+ * @see http://php.net/assert
+ * @see https://www.drupal.org/node/2492225
+ *
+ * It is strongly recommended that you set zend.assertions=1 in the PHP.ini file
+ * (It cannot be changed from .htaccess or runtime) on development machines and
+ * to 0 or -1 in production.
+ *
+ * @see https://wiki.php.net/rfc/expectations
+ */
 assert_options(ASSERT_ACTIVE, TRUE);
-Handle::register();
+assert_options(ASSERT_EXCEPTION, TRUE);
 
 $settings['container_yamls'][] = DRUPAL_ROOT . '/sites/develop.services.yml';
 $settings['cache']['bins']['render'] = 'cache.backend.null';

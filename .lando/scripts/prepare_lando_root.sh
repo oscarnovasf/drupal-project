@@ -5,7 +5,7 @@
 # Realiza la configuración inicial del contenedor para el proyecto.
 # (configuraciones que son necesarias realizar con el usuario root)
 #
-#  @version   v1.0.0
+#  @version   v1.1.0
 #  @license   GNU/GPL v3+
 # ##############################################################################
 
@@ -56,17 +56,40 @@ function show_bye() {
   exit 0
 }
 
-# Instalación de gulp y dependencias.
-function install_gulp() {
+# Instalación de Node.js.
+function install_node() {
   echo " "
-  echo -e " Instalando ${YELLOW}Gulp y sus dependencias...${RESET}"
+  echo -e " Instalando ${YELLOW}Node.js y sus dependencias...${RESET}"
   linea
 
-  apt-get update -y && apt-get install python3-software-properties gnupg2 curl wget -y
-  curl -sL https://deb.nodesource.com/setup_14.x | bash -
+  apt-get update -y && apt-get install python3-software-properties gnupg curl wget gcc g++ make ca-certificates -y
+  curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
+
+  NODE_MAJOR=18
+  echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list
+
+  apt-get update
   apt-get install nodejs -y
 
+  npm install -g npm@latest
+}
+
+# Instalación de GULP.
+function install_gulp() {
+  echo " "
+  echo -e " Instalando ${YELLOW}Gulp...${RESET}"
+  linea
+
   npm install -g gulp-cli
+}
+
+# Instalación de SASS.
+function install_sass() {
+  echo " "
+  echo -e " Instalando ${YELLOW}SASS...${RESET}"
+  linea
+
+  npm install -g sass
 }
 
 # Instalación de JQ.
@@ -74,6 +97,7 @@ function install_jq() {
   echo " "
   echo -e " Instalando ${YELLOW}JQ...${RESET}"
   linea
+
   apt-get update -y && apt-get install -y jq
 }
 
@@ -82,14 +106,17 @@ function install_pv() {
   echo " "
   echo -e " Instalando ${YELLOW}PV...${RESET}"
   linea
+
   apt-get update -y && apt-get install -y pv
 }
 
 # Instalación y activación de PhpRedis.
+# No se usa porque Lando ya incluye redis.
 function install_redis() {
   echo " "
   echo -e " Instalando y activando ${YELLOW}PHPRedis...${RESET}"
   linea
+
   printf "\n" | pecl install -o -f redis
   rm -rf /tmp/pear
   echo "extension=redis.so" > /usr/local/etc/php/conf.d/redis.ini
@@ -111,14 +138,17 @@ function install_igbinary() {
 
 
 show_header
+
+# Herramientas de desarrollo.
+install_node
+install_sass
 install_gulp
+
+# Herramientas de sistema.
 install_jq
 install_pv
 
-# Lando ya incluye redis instalado, así que esto no es necesario pero se
-# mantiene la funcionalidad por si en futuras versiones no le dan soporte.
-# install_redis
-
+# Herramientas de optimización y rendimiento.
 install_igbinary
 
 show_bye

@@ -3,10 +3,6 @@
 
         "drupal/redis": {
             "Default lifetime for permanent TTL": "https://www.drupal.org/files/issues/2020-09-23/redis-default_permanent_ttl-2944938.patch"
-        },
-
-        "drupal/webform": {
-            "Deprecated function: Creation of dynamic property": "https://www.drupal.org/files/issues/2023-01-26/3336649-2.patch"
         }
     }
 }

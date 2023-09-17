@@ -6,6 +6,34 @@ Todos los cambios notables de este proyecto se documentarán en este archivo.
   > Ver [TODO.md](TODO.md)
 
 ---
+* ## [v3.2.0] - 2023-09-17
+  > Revisión.
+
+  * #### Añadido:
+    - Configuración para el [scanner de Lando](https://docs.lando.dev/core/v3/scanner.html).
+    - Configuración inicial para Entity Print.
+    - Mejora en la limpieza de caché a través del módulo igbinary y redis.
+    - Comando Lando para ejecutar SASS en el custom theme.
+
+  * #### Cambios:
+    - Mejora de la documentación.
+    - Reactivación del modo debug por defecto.
+    - Upgrade a Drupal 10.1
+    - Versión de PHP por defecto: 8.1.
+    - Actualización del defatul.settings.php con los ajustes para Drupal 10.1.
+    - En el script de instalación, los permisos por defecto del usuario manager,
+      ahora se toman de las variables de los scripts.
+    - Update de la versión de Node.js en el contenedor de Lando.
+    - Actualización de versiones de los módulos instalados.
+    - Carpeta para los test de API cambiada de nombre.
+    - Update de la forma de instalar node.js y adaptación a la nueva
+      documentación.
+
+  * #### Eliminado:
+    - Módulo Allowed Formats: ya no es necesario en Drupal 10.1.
+    - Módulo Blazy: ya no es necesario en Drupal 10.1.
+
+---
 * ## [v3.1.1] - 2023-05-24
   > Revisión.
 

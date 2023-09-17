@@ -336,28 +336,13 @@ function create_manager() {
   ${DRUSH} user-add-role "manager" "${DRUPAL_MANAGER_NAME}"
 
   # Asigno permisos por defecto al usuario manager.
-  ${DRUSH} role-add-perm "manager" "\
-    access site in maintenance mode, \
-    access site reports, \
-    access taxonomy overview, \
-    access toolbar, \
-    access user profiles, \
-    administer users, \
-    create page content, \
-    delete all revisions, \
-    delete any webform submission, \
-    edit any page content, \
-    edit any webform submission, \
-    edit config_pages entity, \
-    revert all revisions, \
-    use text format full_html, \
-    view all revisions, \
-    view any webform submission, \
-    view config_pages entity, \
-    view own unpublished content, \
-    view the administration theme, \
-    view user email addresses \
-  "
+  for i in "${MANAGER_PERMISSIONS[@]}"; do
+    echo " "
+    echo -e " ${GREEN}Asignando permiso: ${i}...${RESET}"
+    linea
+    echo " "
+    ${DRUSH} role-add-perm "manager" "${i}"
+  done
 }
 
 # Desactiva módulos y vistas que no uso.

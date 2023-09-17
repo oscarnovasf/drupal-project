@@ -3,10 +3,10 @@ recipe: drupal10
 
 config:
   webroot: web
-  php: '8.2'
+  php: '8.1'
   composer_version: 2-latest
   drush: ^11
-  xdebug: false
+  xdebug: debug
   config:
     php: ./.lando/php/php.ini
 
@@ -21,13 +21,21 @@ services:
     run:
       - find ./scripts/shell/ -type f -iname "*.sh" -exec chmod +x {} \;
       - ./scripts/shell/install.sh
+    scanner:
+      maxRedirects: 0
+      timeout: 3000
+      retry: 10
     overrides:
       environment:
+        # Soporte para debug con Drush y XDEBUG.
+        PHP_IDE_CONFIG: "serverName=appserver"
         # PHPUnit.
         SIMPLETEST_BASE_URL: "https://[PROYECTO].lndo.site"
         SIMPLETEST_DB: "mysql://[DB_USER]:[DB_PASSWORD]@database/[DB_DATABASE]"
         # Mailhog.
         PHP_SENDMAIL_PATH: '/usr/sbin/sendmail -S mailhog:1025'
+        # Drush.
+        DRUSH_OPTIONS_URI: "https://[PROYECTO].lndo.site"
 
   # Configuración de la base de datos.
   # database: disabled # No activa el servicio de database.
@@ -98,6 +106,14 @@ tooling:
     dir: /app/web/themes/custom/[THEME_MACHINE_NAME]/
     cmd:
       - npm
+
+  # lando sass
+  sass:
+    service: appserver
+    description: Ejecución del watch de sass en el custom theme.
+    dir: /app/web/themes/custom/[THEME_MACHINE_NAME]/
+    cmd:
+      - sass -w ./scss:./css --style compressed
 
   # lanto test
   test:
