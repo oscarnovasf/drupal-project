@@ -62,7 +62,8 @@ function install_node() {
   echo -e " Instalando ${YELLOW}Node.js y sus dependencias...${RESET}"
   linea
 
-  apt-get update -y && apt-get install python3-software-properties gnupg curl wget gcc g++ make ca-certificates -y
+  apt-get update -y && apt-get install python2 gnupg curl wget gcc g++ make ca-certificates -y
+  mkdir -p /etc/apt/keyrings
   curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
 
   NODE_MAJOR=18
