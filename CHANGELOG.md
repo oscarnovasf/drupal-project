@@ -6,6 +6,13 @@ Todos los cambios notables de este proyecto se documentarán en este archivo.
   > Ver [TODO.md](TODO.md)
 
 ---
+* ## [v3.2.1] - 2023-10-09
+  > Revisión.
+
+  * #### Errores:
+    - Corregidos errores en la instalación a causa del módulo igbinary.
+
+---
 * ## [v3.2.0] - 2023-09-17
   > Revisión.
 

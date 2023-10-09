@@ -280,6 +280,23 @@ function install_drupal() {
   ${DRUSH} si -y
 }
 
+# Activa los módulos de Sandbox.
+function activate_sandbox_modules() {
+  clear
+  linea
+  echo -e " ${YELLOW}Activando módulos (SandBox)...${RESET}"
+  linea
+
+  # Módulos generales.
+  for i in "${PROD_DRUSH_NAMES_SANDBOX[@]}"; do
+    echo " "
+    echo -e " ${GREEN}Activando ${i}...${RESET}"
+    linea
+    echo " "
+    ${DRUSH} -y en "${i}"
+  done
+}
+
 # Activa los módulos instalados.
 function activate_modules() {
   clear
@@ -500,6 +517,7 @@ else
   install_drupal
 
   # Activo módulos.
+  activate_sandbox_modules
   activate_modules
 
   # Creo usuario manager.

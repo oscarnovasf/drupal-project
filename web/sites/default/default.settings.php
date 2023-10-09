@@ -774,7 +774,12 @@ else {
  * Load services definition file.
  */
 $settings['container_yamls'][] = DRUPAL_ROOT . '/sites/default.services.yml';
-$settings['container_yamls'][] = DRUPAL_ROOT . '/sites/igbinary.services.yml';
+
+if (!InstallerKernel::installationAttempted() &&
+    !empty($_ENV['USE_IGBINARY']) &&
+    $_ENV['USE_IGBINARY'] == 'y') {
+  $settings['container_yamls'][] = DRUPAL_ROOT . '/sites/igbinary.services.yml';
+}
 
 /**
  * Override the default service container class.

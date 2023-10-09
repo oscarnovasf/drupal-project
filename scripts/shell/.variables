@@ -97,7 +97,8 @@ PROD_DRUSH_NAMES=("${PROD_DRUSH_NAMES[@]}" "webform_ui")
 PROD_DRUSH_NAMES=("${PROD_DRUSH_NAMES[@]}" "webform_views")
 
 # Módulos incluídos en sandbox.
-PROD_DRUSH_NAMES=("${PROD_DRUSH_NAMES[@]}" "igbinary")
+declare -a PROD_DRUSH_NAMES_SANDBOX
+PROD_DRUSH_NAMES_SANDBOX=('igbinary')
 
 # Módulos del core a desactivar.
 declare -a CORE_MODULES_DISABLED

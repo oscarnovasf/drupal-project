@@ -307,8 +307,8 @@ Al instalar con este `composer.json` se realizan las siguientes tareas:
 
 ---
 
-[version]: v3.2.0
-[version-badge]: https://img.shields.io/badge/Versión-3.2.0-blue.svg
+[version]: v3.2.1
+[version-badge]: https://img.shields.io/badge/Versión-3.2.1-blue.svg
 
 [license]: LICENSE.md
 [license-badge]: https://img.shields.io/badge/Licencia-GPLv3+-green.svg "Leer la licencia"
