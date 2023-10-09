@@ -773,8 +773,8 @@ else {
 /**
  * Load services definition file.
  */
-$settings['container_yamls'][] = $app_root . '/' . $site_path . '/services.yml';
-$settings['container_yamls'][] = $app_root . '/' . $site_path . '/igbinary.services.yml';
+$settings['container_yamls'][] = DRUPAL_ROOT . '/sites/default.services.yml';
+$settings['container_yamls'][] = DRUPAL_ROOT . '/sites/igbinary.services.yml';
 
 /**
  * Override the default service container class.
@@ -949,7 +949,7 @@ if (!empty($_ENV['REDIS_HOST']) &&
 
   $settings['cache']['default'] = 'cache.backend.redis';
 
-  $settings['container_yamls'][] = $app_root . '/' . $site_path . '/cache.services.yml';
+  $settings['container_yamls'][] = DRUPAL_ROOT . '/sites/cache.services.yml';
 }
 
 /**
